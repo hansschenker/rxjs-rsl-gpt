@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 05 — Repository and Conformance Scaffold**
+**RSL 06 — Normalized TypeScript Model**
 
-This repository currently establishes the toolchain, normative specification index, conformance matrix, fixture layout, and CI boundary. The normalized graph model begins in RSL 06.
+The repository now includes the immutable normalized representation for expressions, nodes, ports, edges, TypeRefs, references, Worker contracts, declarative values, extensions, and source locations. Runtime structural validation begins in RSL 08.
 
 ## Commands
 
@@ -31,24 +31,24 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 
-| Milestone | Deliverable |
-| --- | --- |
-| RSL 05 | Repository and conformance scaffold |
-| RSL 06 | Normalized TypeScript model |
-| RSL 07 | Deterministic YAML parser and serializer |
-| RSL 08 | Structural validator |
-| RSL 09 | Registries and reference resolution |
-| RSL 10 | Type and operation-contract validator |
-| RSL 11 | Unary RxJS compiler and first vertical slice |
-| RSL 12 | Multi-input, branching, and sharing |
-| RSL 13 | Higher-order operation policies |
-| RSL 14 | Scheduler and time runtime |
-| RSL 15 | Execution lifecycle and tracing |
-| RSL 16 | Error, retry, and recovery semantics |
-| RSL 17 | Visualization and debugging |
-| RSL 18 | CLI and developer workflow |
-| RSL 19 | End-to-end conformance and v0.1 release |
+| Milestone | Deliverable                                  |
+| --------- | -------------------------------------------- |
+| RSL 05    | Repository and conformance scaffold          |
+| RSL 06    | Normalized TypeScript model                  |
+| RSL 07    | Deterministic YAML parser and serializer     |
+| RSL 08    | Structural validator                         |
+| RSL 09    | Registries and reference resolution          |
+| RSL 10    | Type and operation-contract validator        |
+| RSL 11    | Unary RxJS compiler and first vertical slice |
+| RSL 12    | Multi-input, branching, and sharing          |
+| RSL 13    | Higher-order operation policies              |
+| RSL 14    | Scheduler and time runtime                   |
+| RSL 15    | Execution lifecycle and tracing              |
+| RSL 16    | Error, retry, and recovery semantics         |
+| RSL 17    | Visualization and debugging                  |
+| RSL 18    | CLI and developer workflow                   |
+| RSL 19    | End-to-end conformance and v0.1 release      |

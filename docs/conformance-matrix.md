@@ -11,9 +11,9 @@ Status values:
 
 | Specification area         | Required evidence                                                                 | Planned milestone      | Status   |
 | -------------------------- | --------------------------------------------------------------------------------- | ---------------------- | -------- |
-| Node polarity              | Source has no inputs; Pipeline has inputs and outputs; Sink has no outputs        | RSL 06, RSL 08         | scaffold |
-| Graph cardinality          | One or more Sources, zero or more Pipelines, one or more Sinks                    | RSL 06, RSL 08         | scaffold |
-| Explicit ports and edges   | Endpoints exist and required ports are connected                                  | RSL 06, RSL 08         | scaffold |
+| Node polarity              | Source has no inputs; Pipeline has inputs and outputs; Sink has no outputs        | RSL 06, RSL 08         | partial  |
+| Graph cardinality          | One or more Sources, zero or more Pipelines, one or more Sinks                    | RSL 06, RSL 08         | partial  |
+| Explicit ports and edges   | Endpoints exist and required ports are connected                                  | RSL 06, RSL 08         | partial  |
 | Type-compatible edges      | Every dataflow edge carries a compatible TypeRef                                  | RSL 10                 | scaffold |
 | DAG invariant              | Directed cycles are rejected                                                      | RSL 08                 | scaffold |
 | Reachability               | Every node is reachable from a Source and can reach a Sink                        | RSL 08                 | scaffold |
