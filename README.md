@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 08 — Structural Validator**
+**RSL 09 — Registries and Reference Resolution**
 
-The repository now validates normalized graphs for identities, Source and Sink cardinality, node polarity, edge endpoints, complete connections, output usefulness, cycles, and Source-to-Sink reachability. A valid graph receives a stable topological order. Type and operation-contract validation remains in RSL 10.
+The repository now provides separate immutable Source, operation, Sink, Worker, scheduler, and type registries. Whole-expression resolution detects invalid, duplicate, missing, ambiguous, version-mismatched, and wrong-category references without executing any registered capability. Contract compatibility remains in RSL 10.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

@@ -25,16 +25,16 @@ Status values:
 | Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | scaffold   |
 | Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | scaffold   |
 | Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | scaffold   |
-| Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | scaffold   |
-| Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | scaffold   |
+| Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | partial    |
+| Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | partial    |
 | Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | scaffold   |
-| Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | scaffold   |
+| Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | partial    |
 | Logical time               | Virtual and physical schedulers preserve semantic ordering                        | RSL 14                 | scaffold   |
 | Equal-time order           | Scheduled actions use deterministic logical-time sequence order                   | RSL 14                 | scaffold   |
 | Scheduled cancellation     | An execution cancels only its owned actions                                       | RSL 14                 | scaffold   |
 | Deterministic YAML         | Restricted syntax parses and serializes canonically                               | RSL 07                 | conformant |
 | No YAML execution          | Parsing invokes no runtime reference                                              | RSL 07                 | conformant |
-| Reference resolution       | Missing, duplicate, and wrong-category references fail                            | RSL 09                 | scaffold   |
+| Reference resolution       | Missing, duplicate, and wrong-category references fail                            | RSL 09                 | conformant |
 | Error recovery             | Retry and recovery scopes preserve cancellation and typing                        | RSL 16                 | scaffold   |
 | Trace protocol             | Lifecycle, notifications, scheduling, sharing, and teardown correlate by identity | RSL 15                 | scaffold   |
 | Visualization              | Mermaid is deterministic and introduces no topology                               | RSL 17                 | scaffold   |
