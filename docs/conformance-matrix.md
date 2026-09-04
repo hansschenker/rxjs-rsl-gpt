@@ -11,12 +11,12 @@ Status values:
 
 | Specification area         | Required evidence                                                                 | Planned milestone      | Status     |
 | -------------------------- | --------------------------------------------------------------------------------- | ---------------------- | ---------- |
-| Node polarity              | Source has no inputs; Pipeline has inputs and outputs; Sink has no outputs        | RSL 06, RSL 08         | partial    |
-| Graph cardinality          | One or more Sources, zero or more Pipelines, one or more Sinks                    | RSL 06, RSL 08         | partial    |
-| Explicit ports and edges   | Endpoints exist and required ports are connected                                  | RSL 06, RSL 08         | partial    |
+| Node polarity              | Source has no inputs; Pipeline has inputs and outputs; Sink has no outputs        | RSL 06, RSL 08         | conformant |
+| Graph cardinality          | One or more Sources, zero or more Pipelines, one or more Sinks                    | RSL 06, RSL 08         | conformant |
+| Explicit ports and edges   | Endpoints exist and required ports are connected                                  | RSL 06, RSL 08         | conformant |
 | Type-compatible edges      | Every dataflow edge carries a compatible TypeRef                                  | RSL 10                 | scaffold   |
-| DAG invariant              | Directed cycles are rejected                                                      | RSL 08                 | scaffold   |
-| Reachability               | Every node is reachable from a Source and can reach a Sink                        | RSL 08                 | scaffold   |
+| DAG invariant              | Directed cycles are rejected                                                      | RSL 08                 | conformant |
+| Reachability               | Every node is reachable from a Source and can reach a Sink                        | RSL 08                 | conformant |
 | Laziness                   | Compile invokes no Source or Worker                                               | RSL 11                 | scaffold   |
 | Subscription boundary      | Each subscription creates an independent execution by default                     | RSL 11                 | scaffold   |
 | Notification protocol      | Zero or more next values followed by at most one terminal notification            | RSL 11                 | scaffold   |

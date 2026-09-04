@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 07 — Deterministic YAML Parser and Serializer**
+**RSL 08 — Structural Validator**
 
-The repository now accepts the restricted RSL YAML subset, normalizes it into the immutable RSL 06 graph, and emits stable canonical YAML. It rejects ambiguous scalars and YAML object-construction features, and parsing never activates workflow behavior. Runtime structural validation begins in RSL 08.
+The repository now validates normalized graphs for identities, Source and Sink cardinality, node polarity, edge endpoints, complete connections, output usefulness, cycles, and Source-to-Sink reachability. A valid graph receives a stable topological order. Type and operation-contract validation remains in RSL 10.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

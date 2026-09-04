@@ -1,3 +1,3 @@
 # Invalid fixtures
 
-RSL 07 negative conformance cases are table-driven in `test/yaml.test.ts` so every forbidden syntax form names its expected behavior. Stable fixture files will be added as later validation phases assign path-rich diagnostics.
+RSL 07 YAML syntax cases are table-driven in `test/yaml.test.ts`. RSL 08 graph defects are assembled from the canonical valid fixture in `test/structural-validator.test.ts`, where every defect asserts its stable `STR-*` diagnostic code and model path.
