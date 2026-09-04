@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 10 — Type and Operation-Contract Validation**
+**RSL 11 — Unary RxJS Compiler**
 
-The repository now validates recursive TypeRef compatibility, port edges, operation arity, Worker category/input/output/purity, Observable-producing Workers, and reducer seeds from declarative registry contracts. Validation never executes a registered capability, and TypeScript edge assertions can be generated for an additional compile-time check.
+The first complete vertical slice now compiles a validated Source → unary Pipeline → Sink path into a cold RxJS 7 Observable definition. Compilation is non-executing; each subscription activates a fresh Source and operator chain with normal error, completion, and teardown behavior.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

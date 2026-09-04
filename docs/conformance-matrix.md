@@ -17,11 +17,11 @@ Status values:
 | Type-compatible edges      | Every dataflow edge carries a compatible TypeRef                                  | RSL 10                 | conformant |
 | DAG invariant              | Directed cycles are rejected                                                      | RSL 08                 | conformant |
 | Reachability               | Every node is reachable from a Source and can reach a Sink                        | RSL 08                 | conformant |
-| Laziness                   | Compile invokes no Source or Worker                                               | RSL 11                 | scaffold   |
-| Subscription boundary      | Each subscription creates an independent execution by default                     | RSL 11                 | scaffold   |
-| Notification protocol      | Zero or more next values followed by at most one terminal notification            | RSL 11                 | scaffold   |
-| Cancellation               | Teardown stops participation and does not emit complete                           | RSL 11, RSL 15         | scaffold   |
-| Execution-local state      | Reducer, coordination, and inner state are not shared implicitly                  | RSL 11–RSL 13          | scaffold   |
+| Laziness                   | Compile invokes no Source or Worker                                               | RSL 11                 | conformant |
+| Subscription boundary      | Each subscription creates an independent execution by default                     | RSL 11                 | conformant |
+| Notification protocol      | Zero or more next values followed by at most one terminal notification            | RSL 11                 | conformant |
+| Cancellation               | Teardown stops participation and does not emit complete                           | RSL 11, RSL 15         | partial    |
+| Execution-local state      | Reducer, coordination, and inner state are not shared implicitly                  | RSL 11–RSL 13          | partial    |
 | Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | scaffold   |
 | Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | scaffold   |
 | Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | scaffold   |
