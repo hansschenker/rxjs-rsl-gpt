@@ -14,7 +14,7 @@ Status values:
 | Node polarity              | Source has no inputs; Pipeline has inputs and outputs; Sink has no outputs        | RSL 06, RSL 08         | conformant |
 | Graph cardinality          | One or more Sources, zero or more Pipelines, one or more Sinks                    | RSL 06, RSL 08         | conformant |
 | Explicit ports and edges   | Endpoints exist and required ports are connected                                  | RSL 06, RSL 08         | conformant |
-| Type-compatible edges      | Every dataflow edge carries a compatible TypeRef                                  | RSL 10                 | scaffold   |
+| Type-compatible edges      | Every dataflow edge carries a compatible TypeRef                                  | RSL 10                 | conformant |
 | DAG invariant              | Directed cycles are rejected                                                      | RSL 08                 | conformant |
 | Reachability               | Every node is reachable from a Source and can reach a Sink                        | RSL 08                 | conformant |
 | Laziness                   | Compile invokes no Source or Worker                                               | RSL 11                 | scaffold   |
@@ -26,7 +26,7 @@ Status values:
 | Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | scaffold   |
 | Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | scaffold   |
 | Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | partial    |
-| Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | partial    |
+| Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | conformant |
 | Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | scaffold   |
 | Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | partial    |
 | Logical time               | Virtual and physical schedulers preserve semantic ordering                        | RSL 14                 | scaffold   |

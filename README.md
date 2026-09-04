@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 09 — Registries and Reference Resolution**
+**RSL 10 — Type and Operation-Contract Validation**
 
-The repository now provides separate immutable Source, operation, Sink, Worker, scheduler, and type registries. Whole-expression resolution detects invalid, duplicate, missing, ambiguous, version-mismatched, and wrong-category references without executing any registered capability. Contract compatibility remains in RSL 10.
+The repository now validates recursive TypeRef compatibility, port edges, operation arity, Worker category/input/output/purity, Observable-producing Workers, and reducer seeds from declarative registry contracts. Validation never executes a registered capability, and TypeScript edge assertions can be generated for an additional compile-time check.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

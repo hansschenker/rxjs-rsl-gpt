@@ -1,4 +1,5 @@
 import type { RslExpression, RslNode, TypeRef } from "../model/index.js";
+import type { RegistryContract } from "../contracts/types.js";
 
 export type RegistryCategory =
   "source" | "operation" | "sink" | "worker" | "scheduler" | "type";
@@ -12,6 +13,8 @@ export interface RegistryDefinition<
   readonly version?: string;
   /** Runtime-owned capability. Resolution returns it but never invokes it. */
   readonly value: Value;
+  /** Declarative semantics checked without invoking `value`. */
+  readonly contract?: RegistryContract<Category>;
 }
 
 export interface RslRegistry<
