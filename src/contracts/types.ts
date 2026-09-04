@@ -17,6 +17,7 @@ export type ContractTypeTerm =
   | { readonly kind: "node-output"; readonly index: number }
   | { readonly kind: "worker-input"; readonly index: number }
   | { readonly kind: "worker-output" }
+  | { readonly kind: "worker-output-value" }
   | { readonly kind: "type"; readonly type: TypeRef };
 
 export interface TypeConstraint {

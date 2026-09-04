@@ -315,6 +315,11 @@ void test("accepts Observable-producing Worker return contracts", async () => {
           target: { kind: "worker-input", index: 0 },
           relation: "equal",
         },
+        {
+          source: { kind: "worker-output-value" },
+          target: { kind: "node-output", index: 0 },
+          relation: "equal",
+        },
       ],
     },
   });

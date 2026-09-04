@@ -53,6 +53,10 @@ function termType(
   if (term.kind === "node-output") return node.outputs[term.index]?.type;
   if (term.kind === "worker-input") return worker?.inputs[term.index];
   if (term.kind === "worker-output") return worker?.output;
+  if (term.kind === "worker-output-value")
+    return worker?.output.kind === "observable"
+      ? worker.output.value
+      : undefined;
   return term.type;
 }
 

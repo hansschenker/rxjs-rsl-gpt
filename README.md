@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 12 — Multi-input, Branching, and Sharing**
+**RSL 13 — Higher-order Operation Policies**
 
-The general DAG compiler now supports multiple Sources, ordered multi-input coordination, fan-out, multiple Sinks, and explicit `share` or `shareReplay(1)` policies. Fan-out remains cold by default; only a declared sharing operation shares overlapping execution.
+Observable-producing Workers now run through explicit `mergeMap`, `switchMap`, `concatMap`, or `exhaustMap` operation policies. Workers describe domain work; RSL operations own overlap, cancellation, queueing, and ignore-while-busy behavior.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

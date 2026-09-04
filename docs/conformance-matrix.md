@@ -25,9 +25,9 @@ Status values:
 | Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | conformant |
 | Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | conformant |
 | Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | conformant |
-| Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | partial    |
+| Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | conformant |
 | Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | conformant |
-| Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | scaffold   |
+| Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | conformant |
 | Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | partial    |
 | Logical time               | Virtual and physical schedulers preserve semantic ordering                        | RSL 14                 | scaffold   |
 | Equal-time order           | Scheduled actions use deterministic logical-time sequence order                   | RSL 14                 | scaffold   |
