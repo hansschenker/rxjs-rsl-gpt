@@ -32,6 +32,10 @@ export interface WorkerContract {
 
 export interface WorkerBinding {
   readonly worker: WorkerRef;
+  /** Optional YAML-declared input contract; registry validation occurs later. */
+  readonly input?: TypeRef;
+  /** Optional YAML-declared return contract; registry validation occurs later. */
+  readonly output?: TypeRef;
   readonly contract?: WorkerContract;
 }
 

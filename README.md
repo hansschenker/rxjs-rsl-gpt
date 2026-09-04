@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 06 — Normalized TypeScript Model**
+**RSL 07 — Deterministic YAML Parser and Serializer**
 
-The repository now includes the immutable normalized representation for expressions, nodes, ports, edges, TypeRefs, references, Worker contracts, declarative values, extensions, and source locations. Runtime structural validation begins in RSL 08.
+The repository now accepts the restricted RSL YAML subset, normalizes it into the immutable RSL 06 graph, and emits stable canonical YAML. It rejects ambiguous scalars and YAML object-construction features, and parsing never activates workflow behavior. Runtime structural validation begins in RSL 08.
 
 ## Commands
 
@@ -31,7 +31,7 @@ npm run check
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
 
-See [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## Planned milestone sequence
 

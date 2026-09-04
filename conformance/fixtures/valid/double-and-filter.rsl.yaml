@@ -1,0 +1,48 @@
+rsl:
+  version: "0.1"
+  expression: double-and-filter-numbers
+  nodes:
+    - id: numbers
+      kind: source
+      operation: rxjs.from
+      parameters:
+        values: [1, 2, 3]
+      outputs:
+        - id: value
+          type: number
+    - id: double-numbers
+      kind: pipeline
+      operation: rxjs.map
+      worker:
+        ref: workers.double
+        input: number
+        output: number
+      inputs:
+        - id: value
+          type: number
+      outputs:
+        - id: doubled
+          type: number
+    - id: render-result
+      kind: sink
+      operation: rxjs.subscribe
+      worker:
+        ref: workers.render
+        input: number
+        output: void
+      inputs:
+        - id: value
+          type: number
+  edges:
+    - from:
+        node: numbers
+        port: value
+      to:
+        node: double-numbers
+        port: value
+    - from:
+        node: double-numbers
+        port: doubled
+      to:
+        node: render-result
+        port: value
