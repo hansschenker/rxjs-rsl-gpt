@@ -2,7 +2,7 @@
 export const RSL_VERSION = "0.1" as const;
 
 /** Package status remains pre-release until the v0.1 conformance matrix passes. */
-export const IMPLEMENTATION_STATUS = "unary-compiler" as const;
+export const IMPLEMENTATION_STATUS = "graph-compiler" as const;
 
 export * from "./compiler/index.js";
 export * from "./contracts/index.js";

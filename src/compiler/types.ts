@@ -21,6 +21,12 @@ export type RslUnaryOperationCapability = (
   context: CapabilityContext,
 ) => OperatorFunction<unknown, unknown>;
 
+/** Coordinates input streams in declared port order. */
+export type RslMultiInputOperationCapability = (
+  inputs: readonly Observable<unknown>[],
+  context: CapabilityContext,
+) => Observable<unknown>;
+
 /** Converts the final value stream into a completion/error-only Sink stream. */
 export type RslSinkCapability = (
   source: Observable<unknown>,

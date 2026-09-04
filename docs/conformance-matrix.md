@@ -22,9 +22,9 @@ Status values:
 | Notification protocol      | Zero or more next values followed by at most one terminal notification            | RSL 11                 | conformant |
 | Cancellation               | Teardown stops participation and does not emit complete                           | RSL 11, RSL 15         | partial    |
 | Execution-local state      | Reducer, coordination, and inner state are not shared implicitly                  | RSL 11–RSL 13          | partial    |
-| Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | scaffold   |
-| Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | scaffold   |
-| Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | scaffold   |
+| Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | conformant |
+| Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | conformant |
+| Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | conformant |
 | Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | partial    |
 | Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | conformant |
 | Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | scaffold   |
