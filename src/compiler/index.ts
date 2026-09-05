@@ -16,6 +16,7 @@ export {
 } from "./scheduling.js";
 export {
   createTraceRuntime,
+  errorPolicyReporter,
   traceExecution,
   traceNode,
   type RslExecutionOutcome,
@@ -29,9 +30,11 @@ export {
   effectSink,
   handlersSink,
   observerSink,
+  operationCatchError,
   operationFilter,
   operationDelay,
   operationMap,
+  operationRetry,
   operationScan,
   operationSkip,
   operationTake,
@@ -58,6 +61,7 @@ export type {
   CapabilityContext,
   CompiledRslWorkflow,
   RslCompileOptions,
+  RslErrorPolicyReporter,
   RslRuntimeWorker,
   RslSinkCapability,
   RslSourceCapability,

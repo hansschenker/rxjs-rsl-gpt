@@ -19,7 +19,13 @@ import {
   assertRuntimeSchedulers,
   operationScheduler,
 } from "./scheduling.js";
-import { createTraceRuntime, traceExecution, traceNode } from "./tracing.js";
+import {
+  createTraceRuntime,
+  errorPolicyReporter,
+  traceExecution,
+  traceNode,
+  type RslTraceRuntime,
+} from "./tracing.js";
 
 function runtimeFunction(
   value: unknown,
@@ -35,7 +41,10 @@ function runtimeFunction(
   return value as (...args: never[]) => unknown;
 }
 
-function runtimeContext(resolved: ResolvedNode): CapabilityContext {
+function runtimeContext(
+  resolved: ResolvedNode,
+  trace?: RslTraceRuntime,
+): CapabilityContext {
   const value = resolved.worker?.definition.value;
   const handler = (name: "next" | "error" | "complete") => {
     const candidate = resolved.handlers?.[name]?.definition.value;
@@ -58,6 +67,9 @@ function runtimeContext(resolved: ResolvedNode): CapabilityContext {
     parameters: resolved.node.parameters ?? {},
     ...(value === undefined ? {} : { worker: value as RslRuntimeWorker }),
     ...(scheduledBy === undefined ? {} : { scheduler: scheduledBy }),
+    ...(trace === undefined
+      ? {}
+      : { errorPolicy: errorPolicyReporter(resolved.node.id, trace) }),
     ...(Object.values(handlers).every((candidate) => candidate === undefined)
       ? {}
       : {
@@ -155,7 +167,7 @@ export function compileRslGraph(
         ) as RslSourceCapability;
         result = traceNode(
           applyNodeScheduling(
-            defer(() => from(source(runtimeContext(resolved)))),
+            defer(() => from(source(runtimeContext(resolved, trace)))),
             resolved,
           ),
           resolved,
@@ -181,7 +193,7 @@ export function compileRslGraph(
           result = traceNode(
             applyNodeScheduling(
               inputs[0]?.pipe(
-                operation(runtimeContext(resolved)),
+                operation(runtimeContext(resolved, trace)),
               ) as Observable<unknown>,
               resolved,
             ),
@@ -196,7 +208,7 @@ export function compileRslGraph(
           ) as RslMultiInputOperationCapability;
           result = traceNode(
             applyNodeScheduling(
-              operation(inputs, runtimeContext(resolved)),
+              operation(inputs, runtimeContext(resolved, trace)),
               resolved,
             ),
             resolved,
@@ -240,7 +252,7 @@ export function compileRslGraph(
             resolved,
             trace,
           ),
-          runtimeContext(resolved),
+          runtimeContext(resolved, trace),
         );
       });
     return traceExecution(merge(...terminals), trace);

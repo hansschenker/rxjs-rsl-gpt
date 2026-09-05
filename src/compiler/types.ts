@@ -11,12 +11,19 @@ import type { RslTraceObserver } from "./tracing.js";
 
 export type RslRuntimeWorker = (...inputs: readonly unknown[]) => unknown;
 
+export interface RslErrorPolicyReporter {
+  retry(retry: number, delay: number, error: unknown): void;
+  recovery(error: unknown): void;
+}
+
 export interface CapabilityContext {
   readonly node: RslNode;
   readonly parameters: OperationParameters;
   readonly worker?: RslRuntimeWorker;
   /** Scheduler supplied to a time-aware Source or operation capability. */
   readonly scheduler?: SchedulerLike;
+  /** Execution-local reporting for retry and recovery policy decisions. */
+  readonly errorPolicy?: RslErrorPolicyReporter;
   readonly handlers?: {
     readonly next?: RslRuntimeWorker;
     readonly error?: RslRuntimeWorker;

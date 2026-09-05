@@ -5,3 +5,5 @@
 `asl-inspired-combined-search.rsl.yaml` exercises the v0.1 `StartAt`/`Nodes` syntax, expanded notifications, multiple Sources, `combineLatest`, a dynamic `switchMap` inner Source, and all three Sink handlers.
 
 `scheduled-interval.rsl.yaml` exercises operation, subscription, and notification scheduler roles with a time-producing Source.
+
+`retry-and-recover.rsl.yaml` exercises bounded retry with scheduler-controlled backoff followed by named-Worker Observable recovery.

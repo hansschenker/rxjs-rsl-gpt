@@ -14,7 +14,9 @@ export interface ArityContract {
 
 export type ContractTypeTerm =
   | { readonly kind: "node-input"; readonly index: number }
+  | { readonly kind: "node-input-error"; readonly index: number }
   | { readonly kind: "node-output"; readonly index: number }
+  | { readonly kind: "node-output-error"; readonly index: number }
   | { readonly kind: "worker-input"; readonly index: number }
   | { readonly kind: "worker-output" }
   | { readonly kind: "worker-output-value" }

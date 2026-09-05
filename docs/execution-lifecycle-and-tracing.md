@@ -21,6 +21,8 @@ Finalization records teardown after any of these outcomes. Cancellation is never
 | `scheduler.bound`     | A scheduler role participates at that node.                   |
 | `node.notification`   | The node moved `next`, `error`, or `complete` downstream.     |
 | `node.finalized`      | One node participation completed, errored, or was cancelled.  |
+| `error.retry`         | A numbered retry was admitted with its calculated delay.      |
+| `error.recovery`      | An intercepted error entered a named recovery Worker.         |
 | `execution.finalized` | The complete workflow execution reached its recorded outcome. |
 
 Every event contains `expressionId`, `executionId`, `sequence`, and `time`. Node events also contain `nodeId`; subscription-specific events contain `subscriptionId`. Equal-time events remain ordered by the execution-local sequence.

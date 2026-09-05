@@ -1,0 +1,40 @@
+Version: "0.1"
+StartAt: Request
+Nodes:
+  Request:
+    Type: Source
+    Operation: test.request
+    Output:
+      Type: number
+    Next: RetryRequest
+  RetryRequest:
+    Type: Pipeline
+    Operation: rxjs.retry
+    Arguments:
+      Count: 2
+      Delay: 10
+      BackoffRate: 2
+    Scheduler: schedulers.virtual
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: RecoverRequest
+  RecoverRequest:
+    Type: Pipeline
+    Operation: rxjs.catchError
+    Worker: workers.recoverRequest
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: Result
+  Result:
+    Type: Sink
+    Input:
+      Type: number
+    Handlers:
+      Next: handlers.next
+      Error: handlers.error
+      Complete: handlers.complete
+    End: true

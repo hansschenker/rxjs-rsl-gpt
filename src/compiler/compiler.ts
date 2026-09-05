@@ -18,7 +18,13 @@ import {
   assertRuntimeSchedulers,
   operationScheduler,
 } from "./scheduling.js";
-import { createTraceRuntime, traceExecution, traceNode } from "./tracing.js";
+import {
+  createTraceRuntime,
+  errorPolicyReporter,
+  traceExecution,
+  traceNode,
+  type RslTraceRuntime,
+} from "./tracing.js";
 
 function capability(
   value: unknown,
@@ -35,7 +41,10 @@ function capability(
   return value as (...args: never[]) => unknown;
 }
 
-function context(resolved: ResolvedNode): CapabilityContext {
+function context(
+  resolved: ResolvedNode,
+  trace?: RslTraceRuntime,
+): CapabilityContext {
   const workerValue = resolved.worker?.definition.value;
   if (workerValue !== undefined && typeof workerValue !== "function") {
     throw new RslCompilerError(
@@ -67,6 +76,9 @@ function context(resolved: ResolvedNode): CapabilityContext {
       ? {}
       : { worker: workerValue as RslRuntimeWorker }),
     ...(scheduledBy === undefined ? {} : { scheduler: scheduledBy }),
+    ...(trace === undefined
+      ? {}
+      : { errorPolicy: errorPolicyReporter(resolved.node.id, trace) }),
     ...(Object.values(handlers).every((candidate) => candidate === undefined)
       ? {}
       : {
@@ -195,7 +207,7 @@ export function compileRslUnary(
     const trace = createTraceRuntime(expressionId, executionId, options);
     let stream: Observable<unknown> = traceNode(
       applyNodeScheduling(
-        defer(() => from(sourceFactory(context(sourceNode)))),
+        defer(() => from(sourceFactory(context(sourceNode, trace)))),
         sourceNode,
       ),
       sourceNode,
@@ -205,7 +217,7 @@ export function compileRslUnary(
     for (const operation of operations) {
       stream = traceNode(
         applyNodeScheduling(
-          stream.pipe(operation.capability(context(operation.pipeline))),
+          stream.pipe(operation.capability(context(operation.pipeline, trace))),
           operation.pipeline,
         ),
         operation.pipeline,
@@ -216,7 +228,7 @@ export function compileRslUnary(
     return traceExecution(
       sink(
         traceNode(applyNodeScheduling(stream, sinkNode), sinkNode, trace),
-        context(sinkNode),
+        context(sinkNode, trace),
       ),
       trace,
     );

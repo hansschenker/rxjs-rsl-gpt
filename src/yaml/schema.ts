@@ -618,6 +618,13 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         inputs[0]?.type,
         output.type,
       );
+      if (operation === "rxjs.catchError" && workerBinding !== undefined) {
+        workerBinding = {
+          ...workerBinding,
+          input: inputs[0]?.errorType ?? normalizeTypeRef("unknown"),
+          output: { kind: "observable", value: output.type },
+        };
+      }
       let innerSource: PipelineNode["innerSource"];
       if (record.InnerSource !== undefined) {
         const inner = mapping(record.InnerSource, `${path}.InnerSource`);

@@ -791,6 +791,8 @@ Recover:
 
 The Worker is Observable-producing. `catchError` replaces the failed upstream execution with the returned Observable, which may emit next-values and then complete or error.
 
+The Worker's input type MUST be compatible with the Pipeline input error type. The value type of its returned Observable MUST be compatible with the Pipeline output next type. The Worker MUST be invoked only after an error reaches this Pipeline. An error from the replacement Observable remains terminal unless a later explicit operation intercepts it.
+
 ### 12.2 Retry
 
 ```yaml
@@ -798,7 +800,11 @@ RetryRequest:
   Type: Pipeline
   Operation: rxjs.retry
   Arguments:
-    Count: 3
+    Count: 2
+    Delay: 100
+    BackoffRate: 2
+    ResetOnSuccess: false
+  Scheduler: schedulers.retryClock
   Input:
     Type: ApiResponse
   Output:
@@ -807,6 +813,15 @@ RetryRequest:
 ```
 
 `retry` handles an upstream error by resubscribing according to its policy. Only an unrecovered final error flows downstream.
+
+1. `Count` MUST be a non-negative integer and means the maximum number of retries after the initial attempt.
+2. `Delay` MUST be a finite non-negative duration and defaults to zero.
+3. `BackoffRate` MUST be finite and at least one; it defaults to one.
+4. Retry number `n` waits `Delay × BackoffRate^(n-1)` using the operation scheduler.
+5. `ResetOnSuccess` MUST be boolean and defaults to false.
+6. A retry MUST resubscribe to the entire upstream dataflow in scope, creating fresh cold Source execution and operation state as required.
+7. Exhausting `Count` MUST forward the last error downstream.
+8. Cancellation during retry delay MUST cancel the scheduled resubscription and MUST NOT invoke recovery.
 
 ## 13. Completion-changing operations
 
@@ -923,6 +938,8 @@ The core event kinds are:
 - `scheduler.bound` with its operation, subscription, or notification role;
 - `node.notification` with `next`, `error`, or `complete`;
 - `node.finalized` with `complete`, `error`, or `cancelled`;
+- `error.retry` with node, retry number, calculated delay, and error;
+- `error.recovery` with node and intercepted error;
 - `execution.finalized` with `complete`, `error`, or `cancelled`.
 
 Compilation MUST emit no event. `execution.started` MUST be the first event for a subscription, and `execution.finalized` MUST be its final event. Cancellation MUST produce the `cancelled` outcome and MUST NOT synthesize `complete`. A trace observer failure MUST be isolated from workflow execution.

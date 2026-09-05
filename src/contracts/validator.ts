@@ -50,7 +50,21 @@ function termType(
   worker: WorkerContract | undefined,
 ): TypeRef | undefined {
   if (term.kind === "node-input") return node.inputs[term.index]?.type;
+  if (term.kind === "node-input-error")
+    return (
+      node.inputs[term.index]?.errorType ?? {
+        kind: "primitive",
+        name: "unknown",
+      }
+    );
   if (term.kind === "node-output") return node.outputs[term.index]?.type;
+  if (term.kind === "node-output-error")
+    return (
+      node.outputs[term.index]?.errorType ?? {
+        kind: "primitive",
+        name: "unknown",
+      }
+    );
   if (term.kind === "worker-input") return worker?.inputs[term.index];
   if (term.kind === "worker-output") return worker?.output;
   if (term.kind === "worker-output-value")

@@ -1,5 +1,6 @@
 import {
   asyncScheduler,
+  catchError,
   delay,
   defer,
   filter,
@@ -7,6 +8,8 @@ import {
   ignoreElements,
   interval,
   map,
+  of,
+  retry,
   scan,
   skip,
   take,
@@ -103,6 +106,60 @@ export const operationTakeWhile: RslUnaryOperationCapability = (context) =>
 
 export const operationDelay: RslUnaryOperationCapability = (context) =>
   delay(duration(context, "duration"), context.scheduler ?? asyncScheduler);
+
+function numericParameter(
+  context: CapabilityContext,
+  key: string,
+  fallback: number,
+  minimum: number,
+): number {
+  const value = context.parameters[key] ?? fallback;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < minimum)
+    throw new TypeError(
+      `${context.node.id}.${key} must be a finite number >= ${String(minimum)}`,
+    );
+  return value;
+}
+
+function booleanParameter(
+  context: CapabilityContext,
+  key: string,
+  fallback: boolean,
+): boolean {
+  const value = context.parameters[key] ?? fallback;
+  if (typeof value !== "boolean")
+    throw new TypeError(`${context.node.id}.${key} must be boolean`);
+  return value;
+}
+
+/** Count is the number of resubscriptions after the first failed attempt. */
+export const operationRetry: RslUnaryOperationCapability = (context) => {
+  const count = integer(context, "count");
+  const initialDelay = numericParameter(context, "delay", 0, 0);
+  const backoffRate = numericParameter(context, "backoffRate", 1, 1);
+  const resetOnSuccess = booleanParameter(context, "resetOnSuccess", false);
+  return retry({
+    count,
+    resetOnSuccess,
+    delay: (error, retryCount) =>
+      defer(() => {
+        const retryDelay = initialDelay * backoffRate ** (retryCount - 1);
+        if (!Number.isFinite(retryDelay))
+          throw new TypeError(`${context.node.id}.delay overflowed`);
+        context.errorPolicy?.retry(retryCount, retryDelay, error);
+        return retryDelay === 0
+          ? of(null)
+          : timer(retryDelay, context.scheduler ?? asyncScheduler);
+      }),
+  });
+};
+
+/** Replace an errored upstream with the Observable returned by a named Worker. */
+export const operationCatchError: RslUnaryOperationCapability = (context) =>
+  catchError((error, caught) => {
+    context.errorPolicy?.recovery(error);
+    return from(worker(context)(error, caught) as ObservableInput<unknown>);
+  });
 
 export const effectSink: RslSinkCapability = (source, context) =>
   source.pipe(

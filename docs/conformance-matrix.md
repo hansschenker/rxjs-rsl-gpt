@@ -35,7 +35,7 @@ Status values:
 | Deterministic YAML         | Restricted syntax parses and serializes canonically                               | RSL 07                 | conformant |
 | No YAML execution          | Parsing invokes no runtime reference                                              | RSL 07                 | conformant |
 | Reference resolution       | Missing, duplicate, and wrong-category references fail                            | RSL 09                 | conformant |
-| Error recovery             | Retry and recovery scopes preserve cancellation and typing                        | RSL 16                 | scaffold   |
+| Error recovery             | Retry and recovery scopes preserve cancellation and typing                        | RSL 16                 | conformant |
 | Trace protocol             | Lifecycle, notifications, scheduling, sharing, and teardown correlate by identity | RSL 15                 | conformant |
 | Visualization              | Mermaid is deterministic and introduces no topology                               | RSL 17                 | scaffold   |
 

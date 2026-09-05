@@ -41,6 +41,18 @@ export type RslTraceEvent =
       readonly outcome: RslExecutionOutcome;
     })
   | (TraceBase & {
+      readonly kind: "error.retry";
+      readonly nodeId: string;
+      readonly retry: number;
+      readonly delay: number;
+      readonly value: unknown;
+    })
+  | (TraceBase & {
+      readonly kind: "error.recovery";
+      readonly nodeId: string;
+      readonly value: unknown;
+    })
+  | (TraceBase & {
       readonly kind: "execution.finalized";
       readonly outcome: RslExecutionOutcome;
     });
@@ -89,6 +101,24 @@ export function createTraceRuntime(
       const ordinal = (subscriptions.get(nodeId) ?? 0) + 1;
       subscriptions.set(nodeId, ordinal);
       return `${executionId}:${nodeId}:${String(ordinal)}`;
+    },
+  };
+}
+
+/** Bind retry/recovery reports from an operation to its execution trace. */
+export function errorPolicyReporter(nodeId: string, runtime: RslTraceRuntime) {
+  return {
+    retry(retry: number, delay: number, error: unknown): void {
+      runtime.emit({
+        kind: "error.retry",
+        nodeId,
+        retry,
+        delay,
+        value: error,
+      });
+    },
+    recovery(error: unknown): void {
+      runtime.emit({ kind: "error.recovery", nodeId, value: error });
     },
   };
 }
