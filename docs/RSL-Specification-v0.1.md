@@ -1055,7 +1055,31 @@ Scheduler         ::= SchedulerRef | SchedulerRoles
 SchedulerRoles    ::= Operation? SubscribeOn? ObserveOn?
 ```
 
-## 22. Summary model
+## 22. Visualization and debugging
+
+An implementation MAY project an RSL expression into a Mermaid flowchart and MAY fold execution trace events into a debugger snapshot.
+
+The static visualization:
+
+1. MUST render every declared node exactly once;
+2. MUST render every declared edge exactly once and MUST introduce no edge;
+3. MUST preserve port direction and SHOULD expose the carried next-value type;
+4. SHOULD expose operation, Worker, concurrency or error policy, and scheduler roles;
+5. MUST be deterministic for equivalent node and edge declaration order;
+6. MUST escape user-controlled labels and use safe internal diagram identities;
+7. MUST NOT resolve or invoke runtime capabilities, subscribe, or schedule work.
+
+A debugger snapshot:
+
+1. MUST consume events from exactly one expression and execution;
+2. MUST reject events outside increasing sequence order;
+3. MUST preserve the execution's running, complete, error, or cancelled state;
+4. SHOULD summarize actual node subscriptions, active participation, notifications, outcomes, schedulers, retries, and recoveries;
+5. MUST NOT feed values or control signals back into the execution.
+
+Presentation options MAY hide details or select layout direction, but MUST NOT change topology.
+
+## 23. Summary model
 
 ```text
 Static workflow:

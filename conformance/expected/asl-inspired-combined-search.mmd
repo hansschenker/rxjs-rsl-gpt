@@ -1,0 +1,18 @@
+flowchart LR
+  n0["Preferences<br/>Source<br/>rxjs.of"]
+  n1["Queries<br/>Source<br/>rxjs.from"]
+  n2["Render<br/>Sink"]
+  n3["Search<br/>Pipeline<br/>rxjs.switchMap<br/>worker: workers.search<br/>policy: latest / 1"]
+  n4["SearchContext<br/>Pipeline<br/>rxjs.combineLatest"]
+  n0 -->|"value → input-1<br/>string"| n4
+  n1 -->|"value → input-0<br/>string"| n4
+  n4 -->|"value → value<br/>readonly [string, string]"| n3
+  n3 -->|"value → value<br/>string"| n2
+  class n0 source
+  class n1 source
+  class n2 sink
+  class n3 pipeline
+  class n4 pipeline
+  classDef source fill:#e8f5e9,stroke:#2e7d32
+  classDef pipeline fill:#e3f2fd,stroke:#1565c0
+  classDef sink fill:#fff3e0,stroke:#ef6c00

@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 16 — Error, retry, and recovery semantics**
+**RSL 17 — Visualization and debugging**
 
-Errors remain terminal unless an explicit Pipeline intercepts them. `rxjs.retry` provides bounded, scheduler-controlled resubscription with backoff; `rxjs.catchError` invokes a named Observable-producing recovery Worker. Retry, recovery, cancellation, and final errors participate in the execution trace.
+RSL graphs now render as deterministic Mermaid flowcharts without executing the workflow. Execution traces fold into stable debugger snapshots containing lifecycle status, node participation, values, terminal outcomes, scheduler roles, retries, and recoveries.
 
 ## Commands
 
@@ -35,7 +35,7 @@ npm run check
 - Sink `Handlers` resolve named `Next`, `Error`, and `Complete` Workers.
 - `InnerSource` is an execution-local template, not a fourth static node type.
 
-See the [RSL Specification v0.1](docs/RSL-Specification-v0.1.md), [Error, retry, and recovery](docs/error-retry-and-recovery.md), [Execution lifecycle and tracing](docs/execution-lifecycle-and-tracing.md), [Scheduler and time runtime](docs/scheduler-and-time-runtime.md), [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See the [RSL Specification v0.1](docs/RSL-Specification-v0.1.md), [Visualization and debugging](docs/visualization-and-debugging.md), [Error, retry, and recovery](docs/error-retry-and-recovery.md), [Execution lifecycle and tracing](docs/execution-lifecycle-and-tracing.md), [Scheduler and time runtime](docs/scheduler-and-time-runtime.md), [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## RSL example
 
