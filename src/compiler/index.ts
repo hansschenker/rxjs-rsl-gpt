@@ -11,6 +11,7 @@ export {
 export { type CompilerDiagnosticCode, RslCompilerError } from "./diagnostic.js";
 export {
   effectSink,
+  handlersSink,
   observerSink,
   operationFilter,
   operationMap,

@@ -90,6 +90,23 @@ export const effectSink: RslSinkCapability = (source, context) =>
     ignoreElements(),
   );
 
+/** Sink used by the ASL-inspired Handlers form. */
+export const handlersSink: RslSinkCapability = (source, context) =>
+  source.pipe(
+    tap({
+      ...(context.handlers?.next === undefined
+        ? {}
+        : { next: (value) => context.handlers?.next?.(value) }),
+      ...(context.handlers?.error === undefined
+        ? {}
+        : { error: (error) => context.handlers?.error?.(error) }),
+      ...(context.handlers?.complete === undefined
+        ? {}
+        : { complete: () => context.handlers?.complete?.() }),
+    }),
+    ignoreElements(),
+  );
+
 export const observerSink =
   (observer: PartialObserver<unknown>): RslSinkCapability =>
   (source) =>

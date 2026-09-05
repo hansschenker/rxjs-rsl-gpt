@@ -141,6 +141,34 @@ export function validateRslStructure(
         "nodes",
       ),
     );
+  if (expression.startAt !== undefined) {
+    const seen = new Set<string>();
+    expression.startAt.forEach((nodeId, index) => {
+      const node = nodeById.get(nodeId);
+      if (seen.has(nodeId) || node?.kind !== "source")
+        diagnostics.push(
+          diagnostic(
+            "STR-017_INVALID_START_AT",
+            seen.has(nodeId)
+              ? `Duplicate StartAt Source: ${nodeId}`
+              : `StartAt must reference a Source: ${nodeId}`,
+            `startAt[${String(index)}]`,
+            { nodeId },
+          ),
+        );
+      seen.add(nodeId);
+    });
+    for (const source of sources)
+      if (!seen.has(source.id))
+        diagnostics.push(
+          diagnostic(
+            "STR-017_INVALID_START_AT",
+            `Source ${source.id} is not declared in StartAt`,
+            "startAt",
+            { nodeId: source.id },
+          ),
+        );
+  }
 
   expression.nodes.forEach((node, nodeIndex) => {
     const runtimeNode = node as {

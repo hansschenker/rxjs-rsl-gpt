@@ -48,6 +48,11 @@ export interface ResolvedNode {
   readonly operation: ResolvedReference<"source" | "operation" | "sink">;
   readonly worker?: ResolvedReference<"worker">;
   readonly scheduler?: ResolvedReference<"scheduler">;
+  readonly handlers?: {
+    readonly next?: ResolvedReference<"worker">;
+    readonly error?: ResolvedReference<"worker">;
+    readonly complete?: ResolvedReference<"worker">;
+  };
 }
 
 export interface ResolvedTypeReference {

@@ -95,6 +95,30 @@ function reference(
 
 export function normalizeTypeRef(value: RslValue, path = "type"): TypeRef {
   if (typeof value === "string") {
+    const tuple = /^readonly \[(.*)\]$/u.exec(value);
+    if (tuple !== null) {
+      const body = tuple[1]?.trim() ?? "";
+      return {
+        kind: "tuple",
+        items:
+          body === ""
+            ? []
+            : body
+                .split(",")
+                .map((item, index) =>
+                  normalizeTypeRef(
+                    item.trim(),
+                    `${path}.items[${String(index)}]`,
+                  ),
+                ),
+      };
+    }
+    const array = /^readonly (.+)\[\]$/u.exec(value);
+    if (array?.[1] !== undefined)
+      return {
+        kind: "array",
+        items: normalizeTypeRef(array[1].trim(), `${path}.items`),
+      };
     return PRIMITIVES.has(value)
       ? { kind: "primitive", name: value as PrimitiveTypeName }
       : { kind: "named", ref: value };
@@ -358,8 +382,414 @@ function edge(value: RslValue, index: number): Edge {
   };
 }
 
+function lowerFirst(value: string): string {
+  return `${value.slice(0, 1).toLowerCase()}${value.slice(1)}`;
+}
+
+function specPort(
+  value: RslValue,
+  direction: "input" | "output",
+  id: string,
+  path: string,
+): InputPort | OutputPort {
+  const record = mapping(value, path);
+  fields(record, ["Type", "Next", "Error", "Complete"], path);
+  const next =
+    record.Type === undefined
+      ? mapping(record.Next as RslValue, `${path}.Next`).Type
+      : record.Type;
+  if (next === undefined) fail(`${path} requires Type or Next.Type`);
+  const type = normalizeTypeRef(next, `${path}.Next.Type`);
+  if (
+    type.kind === "observable" ||
+    (type.kind === "primitive" && type.name === "void")
+  )
+    fail(`${path} cannot carry Observable or void next-values`);
+  const errorType =
+    record.Error === undefined
+      ? normalizeTypeRef("unknown", `${path}.Error.Type`)
+      : normalizeTypeRef(
+          mapping(record.Error, `${path}.Error`).Type as RslValue,
+          `${path}.Error.Type`,
+        );
+  if (record.Complete !== undefined && typeof record.Complete !== "boolean")
+    fail(`${path}.Complete must be boolean`);
+  return {
+    direction,
+    id,
+    type: type as PortTypeRef,
+    errorType,
+    complete: record.Complete === undefined ? true : record.Complete,
+  };
+}
+
+function specWorker(
+  value: RslValue | undefined,
+  path: string,
+  input?: TypeRef,
+  output?: TypeRef,
+): WorkerBinding | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "string")
+    return {
+      worker: { kind: "worker", ref: value },
+      ...(input === undefined ? {} : { input }),
+      ...(output === undefined ? {} : { output }),
+    };
+  return worker(value, path);
+}
+
+function specParameters(
+  operation: string,
+  argumentsValue: RslValue | undefined,
+): RslMapping | undefined {
+  if (argumentsValue === undefined) return undefined;
+  if (Array.isArray(argumentsValue)) {
+    const argumentsList = argumentsValue as readonly RslValue[];
+    if (operation === "rxjs.from") return { values: argumentsList[0] ?? [] };
+    if (operation === "rxjs.of") return { values: argumentsList };
+    return { arguments: argumentsList };
+  }
+  const declared = mapping(argumentsValue, "Arguments");
+  return Object.fromEntries(
+    Object.entries(declared).map(([key, item]) => [lowerFirst(key), item]),
+  );
+}
+
+function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
+  fields(document, ["Version", "Comment", "StartAt", "Nodes"], "document");
+  if (document.Version !== "0.1") fail('Version must be the string "0.1"');
+  const entries = Array.isArray(document.StartAt)
+    ? (document.StartAt as readonly RslValue[]).map((item, index) =>
+        string(item, `StartAt[${String(index)}]`),
+      )
+    : [string(document.StartAt, "StartAt")];
+  if (entries.length === 0) fail("StartAt must not be empty");
+  const declared = mapping(document.Nodes as RslValue, "Nodes");
+  const nextByNode = new Map<string, string>();
+  const fromByNode = new Map<string, readonly string[]>();
+
+  const nodes = Object.entries(declared).map(([id, item]): RslNode => {
+    const path = `Nodes.${id}`;
+    const record = mapping(item, path);
+    const type = string(record.Type, `${path}.Type`);
+    const next =
+      record.Next === undefined
+        ? undefined
+        : string(record.Next, `${path}.Next`);
+    if (next !== undefined) nextByNode.set(id, next);
+
+    if (type === "Source") {
+      fields(
+        record,
+        ["Type", "Operation", "Arguments", "Output", "Next"],
+        path,
+      );
+      if (next === undefined) fail(`${path}.Next is required`);
+      const operation = string(record.Operation, `${path}.Operation`);
+      const output = specPort(
+        record.Output as RslValue,
+        "output",
+        "value",
+        `${path}.Output`,
+      ) as OutputPort;
+      const parameters = specParameters(operation, record.Arguments);
+      return {
+        kind: "source",
+        id,
+        operation: { kind: "operation", ref: operation },
+        ...(parameters === undefined ? {} : { parameters }),
+        inputs: [],
+        outputs: [output],
+      };
+    }
+
+    if (type === "Pipeline") {
+      fields(
+        record,
+        [
+          "Type",
+          "Operation",
+          "Worker",
+          "Arguments",
+          "Input",
+          "Inputs",
+          "InnerSource",
+          "Concurrency",
+          "Output",
+          "Next",
+        ],
+        path,
+      );
+      if (next === undefined) fail(`${path}.Next is required`);
+      const operation = string(record.Operation, `${path}.Operation`);
+      const inputs: InputPort[] = [];
+      if (record.Input !== undefined) {
+        if (record.Inputs !== undefined)
+          fail(`${path} cannot declare both Input and Inputs`);
+        inputs.push(
+          specPort(
+            record.Input,
+            "input",
+            "value",
+            `${path}.Input`,
+          ) as InputPort,
+        );
+      } else {
+        const bindings = sequence(record.Inputs, `${path}.Inputs`);
+        if (bindings.length < 2)
+          fail(`${path}.Inputs requires at least two bindings`);
+        const from: string[] = [];
+        bindings.forEach((binding, index) => {
+          const bindingPath = `${path}.Inputs[${String(index)}]`;
+          const value = mapping(binding, bindingPath);
+          fields(
+            value,
+            ["From", "Type", "Next", "Error", "Complete"],
+            bindingPath,
+          );
+          from.push(string(value.From, `${bindingPath}.From`));
+          const portValue = Object.fromEntries(
+            Object.entries(value).filter(([key]) => key !== "From"),
+          );
+          inputs.push(
+            specPort(
+              portValue,
+              "input",
+              `input-${String(index)}`,
+              bindingPath,
+            ) as InputPort,
+          );
+        });
+        fromByNode.set(id, from);
+      }
+      if (inputs.length === 0) fail(`${path} requires Input or Inputs`);
+      const output = specPort(
+        record.Output as RslValue,
+        "output",
+        "value",
+        `${path}.Output`,
+      ) as OutputPort;
+      const parameters = specParameters(operation, record.Arguments);
+      let workerBinding = specWorker(
+        record.Worker,
+        `${path}.Worker`,
+        inputs[0]?.type,
+        output.type,
+      );
+      let innerSource: PipelineNode["innerSource"];
+      if (record.InnerSource !== undefined) {
+        const inner = mapping(record.InnerSource, `${path}.InnerSource`);
+        fields(inner, ["CreatedBy", "Output"], `${path}.InnerSource`);
+        if (inner.CreatedBy !== undefined && inner.CreatedBy !== "Worker")
+          fail(`${path}.InnerSource.CreatedBy must be Worker`);
+        const innerOutput = specPort(
+          inner.Output as RslValue,
+          "output",
+          "value",
+          `${path}.InnerSource.Output`,
+        );
+        innerSource = { createdBy: "worker", output: innerOutput.type };
+      }
+      let concurrency: PipelineNode["concurrency"];
+      if (record.Concurrency !== undefined) {
+        const value = mapping(record.Concurrency, `${path}.Concurrency`);
+        fields(value, ["Policy", "Limit"], `${path}.Concurrency`);
+        const policyNames: Readonly<
+          Record<string, "concurrent" | "queue" | "latest" | "first">
+        > = {
+          Concurrent: "concurrent",
+          Queue: "queue",
+          Latest: "latest",
+          First: "first",
+        } as const;
+        const declaredPolicy = string(
+          value.Policy,
+          `${path}.Concurrency.Policy`,
+        );
+        const policy = policyNames[declaredPolicy];
+        if (policy === undefined) fail(`${path}.Concurrency.Policy is invalid`);
+        const limit =
+          value.Limit === "Unbounded"
+            ? "unbounded"
+            : typeof value.Limit === "number" &&
+                Number.isSafeInteger(value.Limit) &&
+                value.Limit > 0
+              ? value.Limit
+              : fail(
+                  `${path}.Concurrency.Limit must be a positive integer or Unbounded`,
+                );
+        concurrency = { policy, limit };
+      }
+      const defaults: Readonly<
+        Record<
+          string,
+          {
+            readonly policy: "concurrent" | "queue" | "latest" | "first";
+            readonly limit: number | "unbounded";
+          }
+        >
+      > = {
+        "rxjs.mergeMap": { policy: "concurrent", limit: "unbounded" },
+        "rxjs.concatMap": { policy: "queue", limit: 1 },
+        "rxjs.switchMap": { policy: "latest", limit: 1 },
+        "rxjs.exhaustMap": { policy: "first", limit: 1 },
+      } as const;
+      const expected = defaults[operation];
+      if (innerSource !== undefined && expected === undefined)
+        fail(`${path}.InnerSource requires a flattening operation`);
+      if (expected !== undefined) {
+        if (workerBinding === undefined)
+          fail(`${path}.Worker is required for ${operation}`);
+        if (innerSource === undefined)
+          fail(`${path}.InnerSource is required for ${operation}`);
+        workerBinding = {
+          ...workerBinding,
+          output: { kind: "observable", value: innerSource.output },
+        };
+        concurrency ??= expected;
+        if (concurrency.policy !== expected.policy)
+          fail(`${path}.Concurrency.Policy does not match ${operation}`);
+      }
+      const effectiveParameters =
+        operation === "rxjs.mergeMap" && concurrency !== undefined
+          ? {
+              ...(parameters ?? {}),
+              ...(concurrency.limit === "unbounded"
+                ? {}
+                : { concurrency: concurrency.limit }),
+            }
+          : parameters;
+      return {
+        kind: "pipeline",
+        id,
+        operation: { kind: "operation", ref: operation },
+        ...(effectiveParameters === undefined
+          ? {}
+          : { parameters: effectiveParameters }),
+        ...(workerBinding === undefined ? {} : { worker: workerBinding }),
+        inputs: inputs as [InputPort, ...InputPort[]],
+        outputs: [output],
+        ...(innerSource === undefined ? {} : { innerSource }),
+        ...(concurrency === undefined ? {} : { concurrency }),
+      };
+    }
+
+    if (type === "Sink") {
+      fields(record, ["Type", "Input", "Handlers", "End"], path);
+      if (record.End !== true) fail(`${path}.End must be true`);
+      if (next !== undefined) fail(`${path}.Next is forbidden for a Sink`);
+      const input = specPort(
+        record.Input as RslValue,
+        "input",
+        "value",
+        `${path}.Input`,
+      ) as InputPort;
+      const declaredHandlers =
+        record.Handlers === undefined
+          ? undefined
+          : mapping(record.Handlers, `${path}.Handlers`);
+      if (declaredHandlers !== undefined)
+        fields(
+          declaredHandlers,
+          ["Next", "Error", "Complete"],
+          `${path}.Handlers`,
+        );
+      const voidType = normalizeTypeRef("void");
+      const handlers =
+        declaredHandlers === undefined
+          ? undefined
+          : {
+              next: specWorker(
+                declaredHandlers.Next,
+                `${path}.Handlers.Next`,
+                input.type,
+                voidType,
+              ),
+              error: specWorker(
+                declaredHandlers.Error,
+                `${path}.Handlers.Error`,
+                input.errorType,
+                voidType,
+              ),
+              complete: specWorker(
+                declaredHandlers.Complete,
+                `${path}.Handlers.Complete`,
+                voidType,
+                voidType,
+              ),
+            };
+      return {
+        kind: "sink",
+        id,
+        operation: { kind: "operation", ref: "rsl.handlers" },
+        inputs: [input],
+        outputs: [],
+        ...(handlers === undefined
+          ? {}
+          : {
+              handlers: {
+                ...(handlers.next === undefined ? {} : { next: handlers.next }),
+                ...(handlers.error === undefined
+                  ? {}
+                  : { error: handlers.error }),
+                ...(handlers.complete === undefined
+                  ? {}
+                  : { complete: handlers.complete }),
+              },
+            }),
+      };
+    }
+    return fail(`${path}.Type must be Source, Pipeline, or Sink`);
+  });
+
+  const nodeById = new Map(nodes.map((item) => [item.id, item]));
+  const edges: Edge[] = [];
+  for (const [target, sources] of fromByNode) {
+    const targetNode = nodeById.get(target);
+    sources.forEach((source, index) => {
+      edges.push({
+        from: { direction: "output", node: source, port: "value" },
+        to: {
+          direction: "input",
+          node: target,
+          port: `input-${String(index)}`,
+        },
+      });
+    });
+    if (targetNode === undefined) fail(`Unknown target node ${target}`);
+  }
+  for (const [source, target] of nextByNode) {
+    if (fromByNode.has(target)) {
+      if (!fromByNode.get(target)?.includes(source))
+        fail(`Nodes.${source}.Next and Nodes.${target}.Inputs disagree`);
+      continue;
+    }
+    const targetNode = nodeById.get(target);
+    if (targetNode === undefined)
+      fail(`Nodes.${source}.Next references unknown node ${target}`);
+    if (targetNode.inputs[0] === undefined)
+      fail(`Nodes.${target} has no input for Nodes.${source}.Next`);
+    edges.push({
+      from: { direction: "output", node: source, port: "value" },
+      to: { direction: "input", node: target, port: targetNode.inputs[0].id },
+    });
+  }
+
+  return {
+    kind: "rsl-expression",
+    version: "0.1",
+    id: "rsl-workflow",
+    startAt: entries as [string, ...string[]],
+    nodes: nodes as [RslNode, ...RslNode[]],
+    edges,
+  };
+}
+
 export function normalizeRslDocument(value: RslValue): RslExpression {
   const document = mapping(value, "document");
+  if (document.Version !== undefined)
+    return normalizeAslInspiredDocument(document);
   fields(document, ["rsl"], "document");
   const root = mapping(document.rsl as RslValue, "rsl");
   const extensions = fields(

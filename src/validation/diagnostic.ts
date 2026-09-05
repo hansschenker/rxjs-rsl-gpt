@@ -14,7 +14,8 @@ export type StructuralDiagnosticCode =
   | "STR-013_UNUSED_OUTPUT"
   | "STR-014_CYCLE"
   | "STR-015_NOT_REACHABLE_FROM_SOURCE"
-  | "STR-016_CANNOT_REACH_SINK";
+  | "STR-016_CANNOT_REACH_SINK"
+  | "STR-017_INVALID_START_AT";
 
 export interface StructuralDiagnostic {
   readonly code: StructuralDiagnosticCode;

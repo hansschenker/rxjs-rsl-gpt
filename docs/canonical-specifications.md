@@ -1,5 +1,7 @@
 # Canonical specifications
 
+The consolidated [RSL Specification v0.1](RSL-Specification-v0.1.md) is the normative concrete-language specification. The milestone documents below remain its semantic foundations.
+
 The implementation is governed by these canonical RSL v0.1 artifacts, in dependency order:
 
 1. `RSL-Structural-Foundation-v0.1.md`

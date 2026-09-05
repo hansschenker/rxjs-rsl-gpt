@@ -5,19 +5,27 @@ import type {
   WorkerBinding,
 } from "./reference.js";
 import type { Located } from "./source-location.js";
-import type { PortTypeRef } from "./type-ref.js";
+import type { PortTypeRef, TypeRef } from "./type-ref.js";
 import type { NonEmptyReadonlyArray, RslValue } from "./value.js";
 
 export interface InputPort extends Located {
   readonly direction: "input";
   readonly id: string;
   readonly type: PortTypeRef;
+  /** Error notification type. Defaults to unknown in concrete syntax. */
+  readonly errorType?: TypeRef;
+  /** Whether completion is accepted. Defaults to true. */
+  readonly complete?: boolean;
 }
 
 export interface OutputPort extends Located {
   readonly direction: "output";
   readonly id: string;
   readonly type: PortTypeRef;
+  /** Error notification type. Defaults to unknown in concrete syntax. */
+  readonly errorType?: TypeRef;
+  /** Whether completion can be produced. Defaults to true. */
+  readonly complete?: boolean;
 }
 
 export interface OutputPortAddress {
@@ -58,11 +66,26 @@ export interface SourceNode extends NodeBase<"source"> {
 export interface PipelineNode extends NodeBase<"pipeline"> {
   readonly inputs: NonEmptyReadonlyArray<InputPort>;
   readonly outputs: NonEmptyReadonlyArray<OutputPort>;
+  /** Static template for execution-local inner Observables. */
+  readonly innerSource?: {
+    readonly createdBy: "worker";
+    readonly output: PortTypeRef;
+  };
+  /** Admission policy for dynamically created inner subscriptions. */
+  readonly concurrency?: {
+    readonly policy: "concurrent" | "queue" | "latest" | "first";
+    readonly limit: number | "unbounded";
+  };
 }
 
 export interface SinkNode extends NodeBase<"sink"> {
   readonly inputs: NonEmptyReadonlyArray<InputPort>;
   readonly outputs: readonly [];
+  readonly handlers?: {
+    readonly next?: WorkerBinding;
+    readonly error?: WorkerBinding;
+    readonly complete?: WorkerBinding;
+  };
 }
 
 export type RslNode = SourceNode | PipelineNode | SinkNode;
@@ -71,6 +94,8 @@ export interface RslExpression extends Located {
   readonly kind: "rsl-expression";
   readonly version: "0.1";
   readonly id: string;
+  /** Ordered root Source identities. */
+  readonly startAt?: NonEmptyReadonlyArray<string>;
   readonly nodes: NonEmptyReadonlyArray<RslNode>;
   readonly edges: readonly Edge[];
   readonly extensions?: Extensions;

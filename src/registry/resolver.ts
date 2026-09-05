@@ -1,4 +1,4 @@
-import type { RslExpression, TypeRef } from "../model/index.js";
+import type { RslExpression, TypeRef, WorkerBinding } from "../model/index.js";
 import { RslRegistryError, type RegistryDiagnostic } from "./diagnostic.js";
 import { REFERENCE_PATTERN } from "./registry.js";
 import type {
@@ -223,12 +223,46 @@ export function validateRslReferences(
             registries,
             diagnostics,
           );
+    const resolveHandler = (
+      binding: WorkerBinding | undefined,
+      name: "next" | "error" | "complete",
+    ) =>
+      binding === undefined
+        ? undefined
+        : resolveOne(
+            binding.worker,
+            "worker",
+            `${nodePath}.handlers.${name}`,
+            registries,
+            diagnostics,
+          );
+    const handlers =
+      node.kind === "sink" && node.handlers !== undefined
+        ? {
+            next: resolveHandler(node.handlers.next, "next"),
+            error: resolveHandler(node.handlers.error, "error"),
+            complete: resolveHandler(node.handlers.complete, "complete"),
+          }
+        : undefined;
     if (operation !== undefined) {
       resolvedNodes.push({
         node,
         operation,
         ...(worker === undefined ? {} : { worker }),
         ...(scheduler === undefined ? {} : { scheduler }),
+        ...(handlers === undefined
+          ? {}
+          : {
+              handlers: {
+                ...(handlers.next === undefined ? {} : { next: handlers.next }),
+                ...(handlers.error === undefined
+                  ? {}
+                  : { error: handlers.error }),
+                ...(handlers.complete === undefined
+                  ? {}
+                  : { complete: handlers.complete }),
+              },
+            }),
       });
     }
 
@@ -279,6 +313,22 @@ export function validateRslReferences(
         `${nodePath}.worker.contract.output`,
         resolveType,
       );
+    if (node.kind === "sink" && node.handlers !== undefined) {
+      for (const [name, binding] of Object.entries(node.handlers)) {
+        if (binding.input !== undefined)
+          visitTypeRefs(
+            binding.input,
+            `${nodePath}.handlers.${name}.input`,
+            resolveType,
+          );
+        if (binding.output !== undefined)
+          visitTypeRefs(
+            binding.output,
+            `${nodePath}.handlers.${name}.output`,
+            resolveType,
+          );
+      }
+    }
   });
 
   return diagnostics.length === 0

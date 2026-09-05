@@ -30,10 +30,36 @@ function runtimeFunction(
 
 function runtimeContext(resolved: ResolvedNode): CapabilityContext {
   const value = resolved.worker?.definition.value;
+  const handler = (name: "next" | "error" | "complete") => {
+    const candidate = resolved.handlers?.[name]?.definition.value;
+    if (candidate !== undefined && typeof candidate !== "function")
+      throw new RslCompilerError(
+        "CMP-003_INVALID_WORKER",
+        `Runtime ${name} handler for ${resolved.node.id} is not a function`,
+        resolved.node.id,
+      );
+    return candidate as RslRuntimeWorker | undefined;
+  };
+  const handlers = {
+    next: handler("next"),
+    error: handler("error"),
+    complete: handler("complete"),
+  };
   return {
     node: resolved.node,
     parameters: resolved.node.parameters ?? {},
     ...(value === undefined ? {} : { worker: value as RslRuntimeWorker }),
+    ...(Object.values(handlers).every((candidate) => candidate === undefined)
+      ? {}
+      : {
+          handlers: {
+            ...(handlers.next === undefined ? {} : { next: handlers.next }),
+            ...(handlers.error === undefined ? {} : { error: handlers.error }),
+            ...(handlers.complete === undefined
+              ? {}
+              : { complete: handlers.complete }),
+          },
+        }),
   };
 }
 

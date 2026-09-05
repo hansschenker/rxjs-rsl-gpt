@@ -1,0 +1,69 @@
+Version: "0.1"
+StartAt:
+  - Queries
+  - Preferences
+Nodes:
+  Queries:
+    Type: Source
+    Operation: rxjs.from
+    Arguments:
+      - [one, two]
+    Output:
+      Next:
+        Type: string
+      Error:
+        Type: unknown
+      Complete: true
+    Next: SearchContext
+  Preferences:
+    Type: Source
+    Operation: rxjs.of
+    Arguments:
+      - compact
+    Output:
+      Type: string
+    Next: SearchContext
+  SearchContext:
+    Type: Pipeline
+    Operation: rxjs.combineLatest
+    Inputs:
+      - From: Queries
+        Type: string
+      - From: Preferences
+        Type: string
+    Output:
+      Type:
+        kind: tuple
+        items:
+          - string
+          - string
+    Next: Search
+  Search:
+    Type: Pipeline
+    Operation: rxjs.switchMap
+    Worker: workers.search
+    Input:
+      Type:
+        kind: tuple
+        items:
+          - string
+          - string
+    InnerSource:
+      CreatedBy: Worker
+      Output:
+        Type: string
+    Concurrency:
+      Policy: Latest
+      Limit: 1
+    Output:
+      Type: string
+    Next: Render
+  Render:
+    Type: Sink
+    Input:
+      Type: string
+    Handlers:
+      Next: workers.render
+      Error: workers.renderError
+      Complete: workers.renderComplete
+    End: true

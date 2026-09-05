@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL 13 — Higher-order Operation Policies**
+**RSL v0.1 — ASL-inspired specification alignment**
 
-Observable-producing Workers now run through explicit `mergeMap`, `switchMap`, `concatMap`, or `exhaustMap` operation policies. Workers describe domain work; RSL operations own overlap, cancellation, queueing, and ignore-while-busy behavior.
+The implementation now accepts and canonically writes the ASL-inspired `Version` / `StartAt` / `Nodes` syntax. Notification ports describe `next`, `error`, and `complete`; multi-input Pipelines coordinate multiple Sources; and Observable-producing Workers declare dynamic `InnerSource` templates with explicit concurrency policies.
 
 ## Commands
 
@@ -30,8 +30,46 @@ npm run check
 - Time, cancellation, and sharing are explicit.
 - Cancellation is teardown, not completion.
 - Only the deterministic RSL YAML subset will be accepted.
+- `Input` is the unary form; ordered `Inputs` bind multi-source operations.
+- Compact `Type` ports expand to `Next.Type`, `Error.Type: unknown`, and `Complete: true`.
+- Sink `Handlers` resolve named `Next`, `Error`, and `Complete` Workers.
+- `InnerSource` is an execution-local template, not a fourth static node type.
 
-See [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See the [RSL Specification v0.1](docs/RSL-Specification-v0.1.md), [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+
+## RSL example
+
+```yaml
+Version: "0.1"
+StartAt: Numbers
+Nodes:
+  Numbers:
+    Type: Source
+    Operation: rxjs.from
+    Arguments:
+      - [1, 2, 3]
+    Output:
+      Type: number
+    Next: Double
+  Double:
+    Type: Pipeline
+    Operation: rxjs.map
+    Worker: workers.double
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: Render
+  Render:
+    Type: Sink
+    Input:
+      Type: number
+    Handlers:
+      Next: workers.render
+      Error: workers.renderError
+      Complete: workers.renderComplete
+    End: true
+```
 
 ## Planned milestone sequence
 

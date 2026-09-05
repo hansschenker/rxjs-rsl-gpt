@@ -91,6 +91,26 @@ export function validateRslSemantics(
         edgeIndex,
       });
     }
+    if (
+      source?.errorType !== undefined &&
+      target?.errorType !== undefined &&
+      !isTypeRefAssignable(source.errorType, target.errorType, context)
+    ) {
+      diagnostics.push({
+        code: "TYP-001_INCOMPATIBLE_EDGE",
+        message: `Error channel ${edge.from.node}.${edge.from.port} is not ${profile}-compatible with ${edge.to.node}.${edge.to.port}`,
+        path: `edges[${String(edgeIndex)}].error`,
+        edgeIndex,
+      });
+    }
+    if (source?.complete === true && target?.complete === false) {
+      diagnostics.push({
+        code: "TYP-001_INCOMPATIBLE_EDGE",
+        message: `Completion from ${edge.from.node}.${edge.from.port} is not accepted by ${edge.to.node}.${edge.to.port}`,
+        path: `edges[${String(edgeIndex)}].complete`,
+        edgeIndex,
+      });
+    }
   });
 
   resolved.nodes.forEach((resolvedNode, nodeIndex) => {

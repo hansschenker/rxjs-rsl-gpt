@@ -9,6 +9,11 @@ export interface CapabilityContext {
   readonly node: RslNode;
   readonly parameters: OperationParameters;
   readonly worker?: RslRuntimeWorker;
+  readonly handlers?: {
+    readonly next?: RslRuntimeWorker;
+    readonly error?: RslRuntimeWorker;
+    readonly complete?: RslRuntimeWorker;
+  };
 }
 
 /** Called once per subscription to activate a cold Source execution. */
