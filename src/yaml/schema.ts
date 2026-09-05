@@ -12,6 +12,7 @@ import type {
   RslNode,
   RslValue,
   SinkNode,
+  SchedulerBinding,
   SourceNode,
   TypeRef,
   WorkerBinding,
@@ -439,6 +440,42 @@ function specWorker(
   return worker(value, path);
 }
 
+function schedulerRef(value: RslValue, path: string) {
+  return { ...reference(value, "operation", path), kind: "scheduler" as const };
+}
+
+function specScheduler(
+  value: RslValue | undefined,
+  path: string,
+): SchedulerBinding | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "string")
+    return { operation: schedulerRef(value, path) };
+  const record = mapping(value, path);
+  fields(record, ["Operation", "SubscribeOn", "ObserveOn"], path);
+  if (
+    record.Operation === undefined &&
+    record.SubscribeOn === undefined &&
+    record.ObserveOn === undefined
+  )
+    fail(`${path} must declare Operation, SubscribeOn, or ObserveOn`);
+  return {
+    ...(record.Operation === undefined
+      ? {}
+      : { operation: schedulerRef(record.Operation, `${path}.Operation`) }),
+    ...(record.SubscribeOn === undefined
+      ? {}
+      : {
+          subscribeOn: schedulerRef(record.SubscribeOn, `${path}.SubscribeOn`),
+        }),
+    ...(record.ObserveOn === undefined
+      ? {}
+      : {
+          observeOn: schedulerRef(record.ObserveOn, `${path}.ObserveOn`),
+        }),
+  };
+}
+
 function specParameters(
   operation: string,
   argumentsValue: RslValue | undefined,
@@ -482,7 +519,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
     if (type === "Source") {
       fields(
         record,
-        ["Type", "Operation", "Arguments", "Output", "Next"],
+        ["Type", "Operation", "Arguments", "Scheduler", "Output", "Next"],
         path,
       );
       if (next === undefined) fail(`${path}.Next is required`);
@@ -494,11 +531,13 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         `${path}.Output`,
       ) as OutputPort;
       const parameters = specParameters(operation, record.Arguments);
+      const scheduler = specScheduler(record.Scheduler, `${path}.Scheduler`);
       return {
         kind: "source",
         id,
         operation: { kind: "operation", ref: operation },
         ...(parameters === undefined ? {} : { parameters }),
+        ...(scheduler === undefined ? {} : { scheduler }),
         inputs: [],
         outputs: [output],
       };
@@ -512,6 +551,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
           "Operation",
           "Worker",
           "Arguments",
+          "Scheduler",
           "Input",
           "Inputs",
           "InnerSource",
@@ -571,6 +611,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         `${path}.Output`,
       ) as OutputPort;
       const parameters = specParameters(operation, record.Arguments);
+      const scheduler = specScheduler(record.Scheduler, `${path}.Scheduler`);
       let workerBinding = specWorker(
         record.Worker,
         `${path}.Worker`,
@@ -667,6 +708,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         ...(effectiveParameters === undefined
           ? {}
           : { parameters: effectiveParameters }),
+        ...(scheduler === undefined ? {} : { scheduler }),
         ...(workerBinding === undefined ? {} : { worker: workerBinding }),
         inputs: inputs as [InputPort, ...InputPort[]],
         outputs: [output],
@@ -676,7 +718,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
     }
 
     if (type === "Sink") {
-      fields(record, ["Type", "Input", "Handlers", "End"], path);
+      fields(record, ["Type", "Input", "Scheduler", "Handlers", "End"], path);
       if (record.End !== true) fail(`${path}.End must be true`);
       if (next !== undefined) fail(`${path}.Next is forbidden for a Sink`);
       const input = specPort(
@@ -696,6 +738,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
           `${path}.Handlers`,
         );
       const voidType = normalizeTypeRef("void");
+      const scheduler = specScheduler(record.Scheduler, `${path}.Scheduler`);
       const handlers =
         declaredHandlers === undefined
           ? undefined
@@ -725,6 +768,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         operation: { kind: "operation", ref: "rsl.handlers" },
         inputs: [input],
         outputs: [],
+        ...(scheduler === undefined ? {} : { scheduler }),
         ...(handlers === undefined
           ? {}
           : {

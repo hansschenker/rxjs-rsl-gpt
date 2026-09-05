@@ -10,10 +10,16 @@ export {
 } from "./higher-order-capabilities.js";
 export { type CompilerDiagnosticCode, RslCompilerError } from "./diagnostic.js";
 export {
+  applyNodeScheduling,
+  assertRuntimeSchedulers,
+  operationScheduler,
+} from "./scheduling.js";
+export {
   effectSink,
   handlersSink,
   observerSink,
   operationFilter,
+  operationDelay,
   operationMap,
   operationScan,
   operationSkip,
@@ -22,7 +28,9 @@ export {
   operationTap,
   sourceFrom,
   sourceDefer,
+  sourceInterval,
   sourceOf,
+  sourceTimer,
 } from "./rxjs-capabilities.js";
 export {
   operationCombineLatest,

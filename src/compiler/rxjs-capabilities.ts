@@ -1,14 +1,18 @@
 import {
+  asyncScheduler,
+  delay,
   defer,
   filter,
   from,
   ignoreElements,
+  interval,
   map,
   scan,
   skip,
   take,
   takeWhile,
   tap,
+  timer,
   type ObservableInput,
   type PartialObserver,
 } from "rxjs";
@@ -36,6 +40,15 @@ function integer(context: CapabilityContext, key: string): number {
   return value as number;
 }
 
+function duration(context: CapabilityContext, key: string): number {
+  const value = context.parameters[key];
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0)
+    throw new TypeError(
+      `${context.node.id}.${key} must be a finite non-negative number`,
+    );
+  return value;
+}
+
 export const sourceOf: RslSourceCapability = ({ parameters }) => {
   const values = parameters.values;
   if (values === undefined) throw new TypeError("of.values is required");
@@ -55,6 +68,12 @@ export const sourceDefer: RslSourceCapability = (context) =>
   defer(() =>
     from(worker(context)(context.parameters) as ObservableInput<unknown>),
   );
+
+export const sourceInterval: RslSourceCapability = (context) =>
+  interval(duration(context, "period"), context.scheduler ?? asyncScheduler);
+
+export const sourceTimer: RslSourceCapability = (context) =>
+  timer(duration(context, "dueTime"), context.scheduler ?? asyncScheduler);
 
 export const operationMap: RslUnaryOperationCapability = (context) =>
   map((value) => worker(context)(value));
@@ -81,6 +100,9 @@ export const operationSkip: RslUnaryOperationCapability = (context) =>
 
 export const operationTakeWhile: RslUnaryOperationCapability = (context) =>
   takeWhile((value) => Boolean(worker(context)(value)));
+
+export const operationDelay: RslUnaryOperationCapability = (context) =>
+  delay(duration(context, "duration"), context.scheduler ?? asyncScheduler);
 
 export const effectSink: RslSinkCapability = (source, context) =>
   source.pipe(

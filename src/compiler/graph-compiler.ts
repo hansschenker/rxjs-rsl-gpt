@@ -13,6 +13,11 @@ import type {
   RslSourceCapability,
   RslUnaryOperationCapability,
 } from "./types.js";
+import {
+  applyNodeScheduling,
+  assertRuntimeSchedulers,
+  operationScheduler,
+} from "./scheduling.js";
 
 function runtimeFunction(
   value: unknown,
@@ -45,10 +50,12 @@ function runtimeContext(resolved: ResolvedNode): CapabilityContext {
     error: handler("error"),
     complete: handler("complete"),
   };
+  const scheduledBy = operationScheduler(resolved);
   return {
     node: resolved.node,
     parameters: resolved.node.parameters ?? {},
     ...(value === undefined ? {} : { worker: value as RslRuntimeWorker }),
+    ...(scheduledBy === undefined ? {} : { scheduler: scheduledBy }),
     ...(Object.values(handlers).every((candidate) => candidate === undefined)
       ? {}
       : {
@@ -92,6 +99,7 @@ export function compileRslGraph(
       resolved.node,
       resolved.operation.category,
     );
+    assertRuntimeSchedulers(resolved);
     const worker = resolved.worker?.definition.value;
     if (worker !== undefined && typeof worker !== "function")
       throw new RslCompilerError(
@@ -137,7 +145,10 @@ export function compileRslGraph(
           resolved.node,
           "Source",
         ) as RslSourceCapability;
-        result = defer(() => from(source(runtimeContext(resolved))));
+        result = applyNodeScheduling(
+          defer(() => from(source(runtimeContext(resolved)))),
+          resolved,
+        );
       } else if (resolved.node.kind === "pipeline") {
         const inputs = resolved.node.inputs.map((port) => {
           const edge = incoming.get(`${nodeId}\u0000${port.id}`);
@@ -155,16 +166,22 @@ export function compileRslGraph(
             resolved.node,
             "operation",
           ) as RslUnaryOperationCapability;
-          result = inputs[0]?.pipe(
-            operation(runtimeContext(resolved)),
-          ) as Observable<unknown>;
+          result = applyNodeScheduling(
+            inputs[0]?.pipe(
+              operation(runtimeContext(resolved)),
+            ) as Observable<unknown>,
+            resolved,
+          );
         } else {
           const operation = runtimeFunction(
             resolved.operation.definition.value,
             resolved.node,
             "multi-input operation",
           ) as RslMultiInputOperationCapability;
-          result = operation(inputs, runtimeContext(resolved));
+          result = applyNodeScheduling(
+            operation(inputs, runtimeContext(resolved)),
+            resolved,
+          );
         }
       } else {
         throw new RslCompilerError(
@@ -197,7 +214,10 @@ export function compileRslGraph(
           resolved.node,
           "Sink",
         ) as RslSinkCapability;
-        return sink(build(edge.node), runtimeContext(resolved));
+        return sink(
+          applyNodeScheduling(build(edge.node), resolved),
+          runtimeContext(resolved),
+        );
       });
     return merge(...terminals);
   });

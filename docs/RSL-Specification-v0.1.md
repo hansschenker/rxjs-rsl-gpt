@@ -7,7 +7,8 @@ This document consolidates the following RSL v0.1 definitions into one coherent 
 1. ASL-inspired core syntax;
 2. the RxJS notification protocol;
 3. multi-source combination;
-4. dynamic inner sources and concurrency policies.
+4. dynamic inner sources and concurrency policies;
+5. scheduler and time semantics.
 
 The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are normative requirements.
 
@@ -164,6 +165,7 @@ The order of multiple entries establishes stable subscription order where an ope
 | `Output`      | Output notification port.                                 |
 | `InnerSource` | Template for execution-local inner Observables.           |
 | `Concurrency` | Admission and lifecycle policy for inner subscriptions.   |
+| `Scheduler`   | Runtime scheduler references by scheduling role.          |
 | `Handlers`    | Sink Observer-handler references.                         |
 | `Next`        | Name of the downstream node.                              |
 | `End`         | Declares that a Sink has no downstream node.              |
@@ -192,6 +194,7 @@ A Source:
 5. MAY declare deterministic `Arguments`.
 6. MUST declare `Next` in this core syntax.
 7. MUST remain lazy until workflow subscription.
+8. MAY declare a `Scheduler` binding.
 
 ### 6.2 Unary Pipeline node
 
@@ -217,6 +220,7 @@ A unary Pipeline:
 6. MUST declare `Next`.
 7. MAY declare a named `Worker` when the operation invokes domain behavior.
 8. MAY declare deterministic `Arguments` for operation parameters.
+9. MAY declare a `Scheduler` binding.
 
 The operation is the orchestrator. The Worker is the business function.
 
@@ -244,6 +248,7 @@ A multi-input Pipeline:
 4. MUST declare exactly one `Output`.
 5. MUST declare a multi-input coordination `Operation`.
 6. MUST declare `Next`.
+7. MAY declare a `Scheduler` binding.
 
 Each input binding contains:
 
@@ -282,6 +287,7 @@ A flattening Pipeline:
 3. MUST declare one `InnerSource` template, either explicitly or by deterministic expansion.
 4. MUST declare a valid `Concurrency` policy, either explicitly or by deterministic expansion.
 5. MUST declare `Next`.
+6. MAY declare a `Scheduler` binding.
 
 ### 6.5 Sink node
 
@@ -304,6 +310,7 @@ A Sink:
 3. MUST NOT declare `Output`, `Next`, or `Operation`.
 4. MUST declare `End: true`.
 5. SHOULD explicitly declare all three `Handlers`.
+6. MAY declare a `Scheduler` binding.
 
 ## 7. Notification protocol
 
@@ -826,7 +833,30 @@ Cancelling the workflow through its Subscription:
 
 Cancellation MUST NOT be represented as completion.
 
-## 15. Type compatibility
+## 15. Scheduler and time semantics
+
+A node MAY bind schedulers independently by role:
+
+```yaml
+Scheduler:
+  Operation: schedulers.virtual
+  SubscribeOn: schedulers.subscription
+  ObserveOn: schedulers.notifications
+```
+
+`Scheduler: schedulers.virtual` is shorthand for the `Operation` role.
+
+1. Each reference MUST resolve through the scheduler registry to an RxJS `SchedulerLike` value.
+2. `Operation` supplies the clock to a time-aware Source or Pipeline operation.
+3. `SubscribeOn` schedules subscription to the node's upstream dataflow.
+4. `ObserveOn` schedules all three downstream notification kinds: `next`, `error`, and `complete`.
+5. Parsing, resolution, validation, and compilation MUST NOT schedule work.
+6. Each workflow subscription MUST own its scheduled actions; cancellation MUST cancel its outstanding actions without emitting a terminal notification.
+7. Actions at equal logical time MUST preserve the selected scheduler's sequence order.
+
+RSL's built-in `rxjs.interval`, `rxjs.timer`, and `rxjs.delay` capabilities use the `Operation` scheduler when present. Without one, they use the RxJS asynchronous default.
+
+## 16. Type compatibility
 
 For a connection from node `A` to node `B`:
 
@@ -837,7 +867,7 @@ For a connection from node `A` to node `B`:
 5. A flattening `InnerSource.Output.Next.Type` MUST be assignable to its parent Pipeline `Output.Next.Type`.
 6. A multi-input output type MUST be compatible with the ordered input types and operation definition.
 
-## 16. Graph invariants
+## 17. Graph invariants
 
 A well-formed RSL v0.1 graph MUST satisfy all of the following:
 
@@ -859,7 +889,7 @@ A well-formed RSL v0.1 graph MUST satisfy all of the following:
 16. A flattening operation has a valid `InnerSource` template and concurrency policy.
 17. Runtime inner-source instances are local to one workflow execution.
 
-## 17. Execution invariants
+## 18. Execution invariants
 
 For each subscription:
 
@@ -872,7 +902,7 @@ For each subscription:
 7. a new subscription creates an independent execution unless sharing is explicitly declared elsewhere;
 8. cancellation affects only the execution owned by the cancelled Subscription unless sharing semantics explicitly say otherwise.
 
-## 18. Complete example with combination and flattening
+## 19. Complete example with combination and flattening
 
 ```yaml
 Version: "0.1"
@@ -959,27 +989,29 @@ flowchart LR
   S --> R["Render<br/>Sink"]
 ```
 
-## 19. Compact grammar
+## 20. Compact grammar
 
 ```text
 Workflow          ::= Version Comment? StartAt Nodes
 StartAt           ::= SourceName | SourceNameSequence
 Nodes             ::= Node+
 Node              ::= SourceNode | PipelineNode | SinkNode
-SourceNode        ::= Name Type(Source) Operation Arguments? Output Next
+SourceNode        ::= Name Type(Source) Operation Arguments? Scheduler? Output Next
 PipelineNode      ::= UnaryPipeline | MultiInputPipeline | FlatteningPipeline
-UnaryPipeline     ::= Name Type(Pipeline) Operation Worker? Arguments? Input Output Next
-MultiInputPipeline ::= Name Type(Pipeline) Operation Inputs Output Next
-FlatteningPipeline ::= Name Type(Pipeline) FlattenOperation Worker Input InnerSource Concurrency? Output Next
-SinkNode          ::= Name Type(Sink) Input Handlers End(true)
+UnaryPipeline     ::= Name Type(Pipeline) Operation Worker? Arguments? Scheduler? Input Output Next
+MultiInputPipeline ::= Name Type(Pipeline) Operation Scheduler? Inputs Output Next
+FlatteningPipeline ::= Name Type(Pipeline) FlattenOperation Worker Scheduler? Input InnerSource Concurrency? Output Next
+SinkNode          ::= Name Type(Sink) Scheduler? Input Handlers End(true)
 Port              ::= CompactPort | NotificationPort
 CompactPort       ::= Type
 NotificationPort  ::= Next Error Complete
 InputBinding      ::= From Port
 InnerSource       ::= CreatedBy(Worker)? Output
+Scheduler         ::= SchedulerRef | SchedulerRoles
+SchedulerRoles    ::= Operation? SubscribeOn? ObserveOn?
 ```
 
-## 20. Summary model
+## 21. Summary model
 
 ```text
 Static workflow:

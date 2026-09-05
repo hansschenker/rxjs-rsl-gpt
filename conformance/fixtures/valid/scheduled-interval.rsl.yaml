@@ -1,0 +1,36 @@
+Version: "0.1"
+StartAt: Ticks
+Nodes:
+  Ticks:
+    Type: Source
+    Operation: rxjs.interval
+    Arguments:
+      Period: 10
+    Scheduler: schedulers.virtual
+    Output:
+      Type: number
+    Next: FirstThree
+  FirstThree:
+    Type: Pipeline
+    Operation: rxjs.take
+    Arguments:
+      Count: 3
+    Scheduler:
+      SubscribeOn: schedulers.virtual
+      ObserveOn: schedulers.virtual
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: Result
+  Result:
+    Type: Sink
+    Scheduler:
+      ObserveOn: schedulers.virtual
+    Input:
+      Type: number
+    Handlers:
+      Next: handlers.next
+      Error: handlers.error
+      Complete: handlers.complete
+    End: true

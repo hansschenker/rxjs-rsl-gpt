@@ -28,10 +28,10 @@ Status values:
 | Operator/Worker separation | Operators orchestrate and Workers compute                                         | RSL 09, RSL 11, RSL 13 | conformant |
 | Worker contracts           | Category, input, output, purity, and Observable result are validated              | RSL 09, RSL 10         | conformant |
 | Higher-order policies      | merge/switch/concat/exhaust produce distinct traces                               | RSL 13                 | conformant |
-| Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | partial    |
-| Logical time               | Virtual and physical schedulers preserve semantic ordering                        | RSL 14                 | scaffold   |
-| Equal-time order           | Scheduled actions use deterministic logical-time sequence order                   | RSL 14                 | scaffold   |
-| Scheduled cancellation     | An execution cancels only its owned actions                                       | RSL 14                 | scaffold   |
+| Scheduler references       | SchedulerRef resolves without embedding runtime objects in YAML                   | RSL 09, RSL 14         | conformant |
+| Logical time               | Virtual and physical schedulers preserve semantic ordering                        | RSL 14                 | conformant |
+| Equal-time order           | Scheduled actions use deterministic logical-time sequence order                   | RSL 14                 | conformant |
+| Scheduled cancellation     | An execution cancels only its owned actions                                       | RSL 14                 | conformant |
 | Deterministic YAML         | Restricted syntax parses and serializes canonically                               | RSL 07                 | conformant |
 | No YAML execution          | Parsing invokes no runtime reference                                              | RSL 07                 | conformant |
 | Reference resolution       | Missing, duplicate, and wrong-category references fail                            | RSL 09                 | conformant |

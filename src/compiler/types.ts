@@ -1,4 +1,9 @@
-import type { Observable, ObservableInput, OperatorFunction } from "rxjs";
+import type {
+  Observable,
+  ObservableInput,
+  OperatorFunction,
+  SchedulerLike,
+} from "rxjs";
 
 import type { OperationParameters, RslNode } from "../model/index.js";
 import type { ValidSemanticResult } from "../contracts/index.js";
@@ -9,6 +14,8 @@ export interface CapabilityContext {
   readonly node: RslNode;
   readonly parameters: OperationParameters;
   readonly worker?: RslRuntimeWorker;
+  /** Scheduler supplied to a time-aware Source or operation capability. */
+  readonly scheduler?: SchedulerLike;
   readonly handlers?: {
     readonly next?: RslRuntimeWorker;
     readonly error?: RslRuntimeWorker;

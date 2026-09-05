@@ -6,9 +6,9 @@ RSL describes a lazy, typed, directed acyclic dataflow graph containing one or m
 
 ## Status
 
-**RSL v0.1 — ASL-inspired specification alignment**
+**RSL 14 — Scheduler and time runtime**
 
-The implementation now accepts and canonically writes the ASL-inspired `Version` / `StartAt` / `Nodes` syntax. Notification ports describe `next`, `error`, and `complete`; multi-input Pipelines coordinate multiple Sources; and Observable-producing Workers declare dynamic `InnerSource` templates with explicit concurrency policies.
+Scheduler references now control operation time, subscription timing, and notification delivery. The runtime supports deterministic virtual time, ordered equal-time actions, and cancellation of execution-owned scheduled work.
 
 ## Commands
 
@@ -35,7 +35,7 @@ npm run check
 - Sink `Handlers` resolve named `Next`, `Error`, and `Complete` Workers.
 - `InnerSource` is an execution-local template, not a fourth static node type.
 
-See the [RSL Specification v0.1](docs/RSL-Specification-v0.1.md), [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
+See the [RSL Specification v0.1](docs/RSL-Specification-v0.1.md), [Scheduler and time runtime](docs/scheduler-and-time-runtime.md), [Higher-order policies](docs/higher-order-policies.md), [Multi-input, branching, and sharing](docs/multi-input-branching-sharing.md), [Unary compiler](docs/unary-compiler.md), [Type and operation contracts](docs/type-and-operation-contracts.md), [Registries and resolution](docs/registries-and-resolution.md), [Structural validator](docs/structural-validator.md), [Deterministic YAML](docs/deterministic-yaml.md), [Normalized model](docs/normalized-model.md), [Canonical specifications](docs/canonical-specifications.md), [Architecture boundaries](docs/architecture.md), and the [Conformance matrix](docs/conformance-matrix.md).
 
 ## RSL example
 

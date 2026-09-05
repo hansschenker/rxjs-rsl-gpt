@@ -40,7 +40,14 @@ export interface WorkerBinding {
 }
 
 export interface SchedulerBinding {
-  readonly scheduler: SchedulerRef;
+  /** Scheduler passed to time-producing Source or operation capabilities. */
+  readonly operation?: SchedulerRef;
+  /** Scheduler controlling when upstream subscription begins. */
+  readonly subscribeOn?: SchedulerRef;
+  /** Scheduler controlling downstream notification delivery. */
+  readonly observeOn?: SchedulerRef;
+  /** Legacy scalar binding; equivalent to operation. */
+  readonly scheduler?: SchedulerRef;
 }
 
 /** Declarative operation configuration; it can contain no executable value. */

@@ -1,4 +1,9 @@
-import type { RslExpression, TypeRef, WorkerBinding } from "../model/index.js";
+import type {
+  RslExpression,
+  SchedulerRef,
+  TypeRef,
+  WorkerBinding,
+} from "../model/index.js";
 import { RslRegistryError, type RegistryDiagnostic } from "./diagnostic.js";
 import { REFERENCE_PATTERN } from "./registry.js";
 import type {
@@ -213,16 +218,41 @@ export function validateRslReferences(
             registries,
             diagnostics,
           );
-    const scheduler =
-      node.scheduler === undefined
+    const resolveScheduler = (
+      reference: SchedulerRef | undefined,
+      role: "operation" | "subscribeOn" | "observeOn",
+    ) =>
+      reference === undefined
         ? undefined
         : resolveOne(
-            node.scheduler.scheduler,
+            reference,
             "scheduler",
-            `${nodePath}.scheduler`,
+            `${nodePath}.scheduler.${role}`,
             registries,
             diagnostics,
           );
+    const operationScheduler = resolveScheduler(
+      node.scheduler?.operation ?? node.scheduler?.scheduler,
+      "operation",
+    );
+    const subscribeOnScheduler = resolveScheduler(
+      node.scheduler?.subscribeOn,
+      "subscribeOn",
+    );
+    const observeOnScheduler = resolveScheduler(
+      node.scheduler?.observeOn,
+      "observeOn",
+    );
+    const schedulers =
+      operationScheduler === undefined &&
+      subscribeOnScheduler === undefined &&
+      observeOnScheduler === undefined
+        ? undefined
+        : {
+            operation: operationScheduler,
+            subscribeOn: subscribeOnScheduler,
+            observeOn: observeOnScheduler,
+          };
     const resolveHandler = (
       binding: WorkerBinding | undefined,
       name: "next" | "error" | "complete",
@@ -249,7 +279,24 @@ export function validateRslReferences(
         node,
         operation,
         ...(worker === undefined ? {} : { worker }),
-        ...(scheduler === undefined ? {} : { scheduler }),
+        ...(operationScheduler === undefined
+          ? {}
+          : { scheduler: operationScheduler }),
+        ...(schedulers === undefined
+          ? {}
+          : {
+              schedulers: {
+                ...(schedulers.operation === undefined
+                  ? {}
+                  : { operation: schedulers.operation }),
+                ...(schedulers.subscribeOn === undefined
+                  ? {}
+                  : { subscribeOn: schedulers.subscribeOn }),
+                ...(schedulers.observeOn === undefined
+                  ? {}
+                  : { observeOn: schedulers.observeOn }),
+              },
+            }),
         ...(handlers === undefined
           ? {}
           : {

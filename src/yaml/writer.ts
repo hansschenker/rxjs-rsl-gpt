@@ -17,6 +17,9 @@ const KEY_ORDER = [
   "Operation",
   "Worker",
   "Arguments",
+  "Scheduler",
+  "SubscribeOn",
+  "ObserveOn",
   "Input",
   "Inputs",
   "From",
@@ -207,12 +210,14 @@ function expressionToLegacyRslValue(expression: RslExpression): RslValue {
             }),
       };
     }
-    if (node.scheduler !== undefined)
+    const legacyScheduler =
+      node.scheduler?.operation ?? node.scheduler?.scheduler;
+    if (legacyScheduler !== undefined)
       value.scheduler = {
-        ref: node.scheduler.scheduler.ref,
-        ...(node.scheduler.scheduler.version === undefined
+        ref: legacyScheduler.ref,
+        ...(legacyScheduler.version === undefined
           ? {}
-          : { version: node.scheduler.scheduler.version }),
+          : { version: legacyScheduler.version }),
       };
     if (node.inputs.length > 0)
       value.inputs = node.inputs.map((port) => ({
@@ -294,6 +299,28 @@ function specArguments(
     : Object.fromEntries(entries.map(([key, item]) => [upperFirst(key), item]));
 }
 
+function specScheduler(
+  binding: RslExpression["nodes"][number]["scheduler"],
+): RslValue | undefined {
+  if (binding === undefined) return undefined;
+  const operation = binding.operation ?? binding.scheduler;
+  if (
+    operation !== undefined &&
+    binding.subscribeOn === undefined &&
+    binding.observeOn === undefined
+  )
+    return specReference(operation);
+  return {
+    ...(operation === undefined ? {} : { Operation: specReference(operation) }),
+    ...(binding.subscribeOn === undefined
+      ? {}
+      : { SubscribeOn: specReference(binding.subscribeOn) }),
+    ...(binding.observeOn === undefined
+      ? {}
+      : { ObserveOn: specReference(binding.observeOn) }),
+  };
+}
+
 /** Canonical ASL-inspired RSL v0.1 concrete syntax. */
 export function expressionToRslValue(expression: RslExpression): RslValue {
   const incoming = new Map<string, RslExpression["edges"][number]>();
@@ -311,17 +338,19 @@ export function expressionToRslValue(expression: RslExpression): RslValue {
     const nextEdges = outgoing.get(node.id) ?? [];
     if (node.kind !== "sink" && nextEdges.length !== 1)
       return expressionToLegacyRslValue(expression);
-    if (node.extensions !== undefined || node.scheduler !== undefined)
+    if (node.extensions !== undefined)
       return expressionToLegacyRslValue(expression);
 
     if (node.kind === "source") {
       if (node.outputs.length !== 1)
         return expressionToLegacyRslValue(expression);
       const Arguments = specArguments(node.operation.ref, node.parameters);
+      const Scheduler = specScheduler(node.scheduler);
       Nodes[node.id] = {
         Type: "Source",
         Operation: specReference(node.operation),
         ...(Arguments === undefined ? {} : { Arguments }),
+        ...(Scheduler === undefined ? {} : { Scheduler }),
         Output: specPort(node.outputs[0]),
         Next: nextEdges[0]?.to.node ?? "",
       };
@@ -332,6 +361,7 @@ export function expressionToRslValue(expression: RslExpression): RslValue {
       if (node.outputs.length !== 1)
         return expressionToLegacyRslValue(expression);
       const Arguments = specArguments(node.operation.ref, node.parameters);
+      const Scheduler = specScheduler(node.scheduler);
       const inputValue: Record<string, RslValue> = {};
       if (node.inputs.length === 1) inputValue.Input = specPort(node.inputs[0]);
       else
@@ -354,6 +384,7 @@ export function expressionToRslValue(expression: RslExpression): RslValue {
           ? {}
           : { Worker: specReference(node.worker.worker) }),
         ...(Arguments === undefined ? {} : { Arguments }),
+        ...(Scheduler === undefined ? {} : { Scheduler }),
         ...inputValue,
         ...(node.innerSource === undefined
           ? {}
@@ -383,10 +414,12 @@ export function expressionToRslValue(expression: RslExpression): RslValue {
     if (node.inputs.length !== 1 || nextEdges.length !== 0)
       return expressionToLegacyRslValue(expression);
     const handlers = node.handlers;
+    const Scheduler = specScheduler(node.scheduler);
     const nextHandler = handlers?.next ?? node.worker;
     Nodes[node.id] = {
       Type: "Sink",
       Input: specPort(node.inputs[0]),
+      ...(Scheduler === undefined ? {} : { Scheduler }),
       ...(handlers === undefined && nextHandler === undefined
         ? {}
         : {

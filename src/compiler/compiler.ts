@@ -12,6 +12,11 @@ import type {
   RslSourceCapability,
   RslUnaryOperationCapability,
 } from "./types.js";
+import {
+  applyNodeScheduling,
+  assertRuntimeSchedulers,
+  operationScheduler,
+} from "./scheduling.js";
 
 function capability(
   value: unknown,
@@ -52,12 +57,14 @@ function context(resolved: ResolvedNode): CapabilityContext {
     error: handler("error"),
     complete: handler("complete"),
   };
+  const scheduledBy = operationScheduler(resolved);
   return {
     node: resolved.node,
     parameters: resolved.node.parameters ?? {},
     ...(workerValue === undefined
       ? {}
       : { worker: workerValue as RslRuntimeWorker }),
+    ...(scheduledBy === undefined ? {} : { scheduler: scheduledBy }),
     ...(Object.values(handlers).every((candidate) => candidate === undefined)
       ? {}
       : {
@@ -173,16 +180,23 @@ export function compileRslUnary(
     "Sink",
   ) as RslSinkCapability;
   path.forEach(assertWorkerShape);
+  path.forEach(assertRuntimeSchedulers);
 
   // The whole factory is deferred. Factories and Workers run per subscription.
   const definition: Observable<never> = defer(() => {
-    let stream: Observable<unknown> = from(sourceFactory(context(sourceNode)));
+    let stream: Observable<unknown> = applyNodeScheduling(
+      from(sourceFactory(context(sourceNode))),
+      sourceNode,
+    );
 
     for (const operation of operations) {
-      stream = stream.pipe(operation.capability(context(operation.pipeline)));
+      stream = applyNodeScheduling(
+        stream.pipe(operation.capability(context(operation.pipeline))),
+        operation.pipeline,
+      );
     }
 
-    return sink(stream, context(sinkNode));
+    return sink(applyNodeScheduling(stream, sinkNode), context(sinkNode));
   });
 
   return Object.freeze({
