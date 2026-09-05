@@ -1,0 +1,43 @@
+Version: "0.1"
+StartAt: CelsiusReadings
+Nodes:
+  CelsiusReadings:
+    Type: Source
+    Operation: rxjs.from
+    Arguments:
+      - [18, 22, 27, 31]
+    Output:
+      Type: number
+    Next: ToFahrenheit
+  ToFahrenheit:
+    Type: Pipeline
+    Operation: rxjs.map
+    Worker: workers.toFahrenheit
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: HotOnly
+  HotOnly:
+    Type: Pipeline
+    Operation: rxjs.filter
+    Worker:
+      ref: workers.isHot
+      input: number
+      output: boolean
+      category: predicate
+      purity: pure
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: Alert
+  Alert:
+    Type: Sink
+    Input:
+      Type: number
+    Handlers:
+      Next: workers.printAlert
+      Error: workers.printError
+      Complete: workers.printComplete
+    End: true

@@ -216,6 +216,40 @@ npm run rsl -- debug path/to/trace.json
 
 The CLI never subscribes to a workflow. `format --write` and `visualize --output` are the only file-writing modes.
 
+## Runnable example
+
+The [temperature alerts example](examples/temperature-alerts/README.md) walks through one complete path:
+
+```mermaid
+flowchart LR
+  n0["Alert<br/>Sink"]
+  n1["CelsiusReadings<br/>Source<br/>rxjs.from"]
+  n2["HotOnly<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.isHot"]
+  n3["ToFahrenheit<br/>Pipeline<br/>rxjs.map<br/>worker: workers.toFahrenheit"]
+  n1 -->|"value → value<br/>number"| n3
+  n2 -->|"value → value<br/>number"| n0
+  n3 -->|"value → value<br/>number"| n2
+  class n0 sink
+  class n1 source
+  class n2 pipeline
+  class n3 pipeline
+  classDef source fill:#e8f5e9,stroke:#2e7d32
+  classDef pipeline fill:#e3f2fd,stroke:#1565c0
+  classDef sink fill:#fff3e0,stroke:#ef6c00
+```
+
+The diagram is generated from [`workflow.rsl.yaml`](examples/temperature-alerts/workflow.rsl.yaml); its exact CLI output is checked in as [`workflow.mmd`](examples/temperature-alerts/workflow.mmd) and protected by a snapshot test.
+
+1. describe a Source → map → filter → Sink workflow in RSL;
+2. bind the named operations and Workers and compile it to a cold RxJS Observable;
+3. subscribe and observe its output;
+4. compare it with equivalent handwritten RxJS;
+5. generate and render its Mermaid graph.
+
+```bash
+npm run example:temperature
+```
+
 ## RSL v0.1 status
 
 **RSL 19 — v0.1 conformant**

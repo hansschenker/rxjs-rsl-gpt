@@ -29,6 +29,7 @@
     "pretest": "npm run build",
     "prepack": "npm run check",
     "test": "node --import tsx --test test/*.test.ts",
+    "example:temperature": "node --import tsx examples/temperature-alerts/run.ts",
     "rsl": "node --import tsx src/cli/entry.ts",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
