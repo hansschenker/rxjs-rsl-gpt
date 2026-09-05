@@ -5,6 +5,7 @@ import type { RslTraceEvent } from "../compiler/index.js";
 import {
   createRslDebugSnapshot,
   renderRslMermaid,
+  renderRslTimelineMermaid,
 } from "../visualization/index.js";
 import { validateRslStructure } from "../validation/index.js";
 import {
@@ -28,6 +29,8 @@ Commands:
   format <file> --write        Replace the file with canonical RSL YAML
   visualize <file>             Print a deterministic Mermaid flowchart
   visualize <file> -o <path>   Write the Mermaid flowchart to a file
+  visualize <file> --trace <trace.json> [--node <id>]
+                               Render values and notifications over time
   inspect <file>               Print a deterministic JSON graph summary
   debug <trace.json>            Fold one JSON trace array into a debug snapshot
 `;
@@ -142,6 +145,21 @@ export async function runRslCli(
         io.stderr("visualize requires a path after --output or -o\n");
         return 2;
       }
+      const hasTraceOption = args.includes("--trace");
+      const tracePath = option(args, "--trace", "--trace");
+      if (
+        hasTraceOption &&
+        (tracePath === undefined || tracePath.startsWith("-"))
+      ) {
+        io.stderr("visualize requires a path after --trace\n");
+        return 2;
+      }
+      const hasNodeOption = args.includes("--node");
+      const nodeId = option(args, "--node", "--node");
+      if (hasNodeOption && (nodeId === undefined || nodeId.startsWith("-"))) {
+        io.stderr("visualize requires a node ID after --node\n");
+        return 2;
+      }
       const result = validateRslStructure(expression);
       if (!result.valid) {
         for (const diagnostic of result.diagnostics)
@@ -153,8 +171,16 @@ export async function runRslCli(
       const mermaid = renderRslMermaid(expression, {
         direction: args.includes("--top-down") ? "TD" : "LR",
       });
-      if (output === undefined) io.stdout(mermaid);
-      else await io.write(output, mermaid);
+      const rendered =
+        tracePath === undefined
+          ? mermaid
+          : renderRslTimelineMermaid(
+              expression,
+              parseTrace(await io.read(tracePath)),
+              nodeId,
+            );
+      if (output === undefined) io.stdout(rendered);
+      else await io.write(output, rendered);
       return 0;
     }
     if (command === "inspect") {

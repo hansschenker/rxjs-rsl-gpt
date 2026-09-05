@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   parseRslExpression,
   renderRslMermaid,
+  renderRslTimelineMermaid,
   runRslCli,
   stringifyRslExpression,
   type RslCliIo,
@@ -103,6 +104,70 @@ void test("visualize and inspect produce deterministic developer artifacts", asy
   assert.equal(report.edgeCount, 4);
 });
 
+void test("visualize renders notification values from a saved trace", async () => {
+  const trace = JSON.stringify([
+    {
+      kind: "execution.started",
+      sequence: 0,
+      time: 0,
+      expressionId: "rsl-workflow",
+      executionId: "execution-1",
+    },
+    {
+      kind: "node.notification",
+      sequence: 1,
+      time: 2,
+      expressionId: "rsl-workflow",
+      executionId: "execution-1",
+      nodeId: "Render",
+      subscriptionId: "execution-1:Render:1",
+      notification: { kind: "next", value: 6 },
+    },
+    {
+      kind: "node.notification",
+      sequence: 2,
+      time: 3,
+      expressionId: "rsl-workflow",
+      executionId: "execution-1",
+      nodeId: "Render",
+      subscriptionId: "execution-1:Render:1",
+      notification: { kind: "complete" },
+    },
+    {
+      kind: "execution.finalized",
+      sequence: 3,
+      time: 3,
+      expressionId: "rsl-workflow",
+      executionId: "execution-1",
+      outcome: "complete",
+    },
+  ]);
+  const memory = memoryIo({ "flow.rsl.yaml": fixture, "trace.json": trace });
+
+  assert.equal(
+    await runRslCli(
+      [
+        "visualize",
+        "flow.rsl.yaml",
+        "--trace",
+        "trace.json",
+        "--node",
+        "Render",
+      ],
+      memory.io,
+    ),
+    0,
+  );
+  assert.equal(
+    memory.stdout.join(""),
+    renderRslTimelineMermaid(
+      parseRslExpression(fixture),
+      JSON.parse(trace) as Parameters<typeof renderRslTimelineMermaid>[1],
+      "Render",
+    ),
+  );
+});
+
 void test("debug folds a saved trace and invalid YAML uses a nonzero code", async () => {
   const trace = JSON.stringify([
     {
@@ -144,6 +209,14 @@ void test("mutating CLI options require an unambiguous explicit mode", async () 
   );
   assert.equal(
     await runRslCli(["visualize", "flow.rsl.yaml", "--output"], memory.io),
+    2,
+  );
+  assert.equal(
+    await runRslCli(["visualize", "flow.rsl.yaml", "--trace"], memory.io),
+    2,
+  );
+  assert.equal(
+    await runRslCli(["visualize", "flow.rsl.yaml", "--node"], memory.io),
     2,
   );
   assert.equal(memory.stored.size, 1);

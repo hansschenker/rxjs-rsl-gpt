@@ -30,3 +30,21 @@ Options can select left-to-right or top-down layout and hide type, Worker, sched
 Snapshots preserve cold-versus-shared behavior because they summarize actual node subscriptions, not merely the static graph. The fold accepts only one `expressionId` and `executionId`, and trace events must be in increasing sequence order.
 
 Visualization and debugging are observers of RSL. Neither API can emit a value, recover an error, cancel an execution, or alter sharing.
+
+## Execution timeline
+
+`renderRslTimelineMermaid(expression, events, nodeId?)` combines the static graph with one saved execution trace. It renders every `next`, `error`, or `complete` notification observed at the selected node in sequence order, including logical time and JSON-safe values. When `nodeId` is omitted, the first Sink is selected.
+
+An optional `x-jsonata` extension can document the expression associated with a Source, Pipeline, or Sink:
+
+```yaml
+x-jsonata: "{% $ * 2 %}"
+```
+
+In RSL 0.1 this annotation is visualization metadata. It is displayed but not evaluated; the named Worker remains the executable implementation.
+
+Generate a timeline from the CLI with:
+
+```bash
+rsl visualize workflow.rsl.yaml --trace trace.json --node Console
+```

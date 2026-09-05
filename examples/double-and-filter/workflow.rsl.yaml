@@ -13,6 +13,7 @@ Nodes:
     Type: Pipeline
     Operation: rxjs.map
     Worker: workers.double
+    x-jsonata: "{% $ * 2 %}"
     Input:
       Type: number
     Output:
@@ -21,6 +22,7 @@ Nodes:
   GreaterThanFour:
     Type: Pipeline
     Operation: rxjs.filter
+    x-jsonata: "{% $ > 4 %}"
     Worker:
       ref: workers.greaterThanFour
       input: number
@@ -34,6 +36,7 @@ Nodes:
     Next: Console
   Console:
     Type: Sink
+    x-jsonata: "{% $ %}"
     Input:
       Type: number
     Handlers:

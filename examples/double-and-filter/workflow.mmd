@@ -1,7 +1,7 @@
 flowchart LR
-  n0["Console<br/>Sink"]
-  n1["Double<br/>Pipeline<br/>rxjs.map<br/>worker: workers.double"]
-  n2["GreaterThanFour<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.greaterThanFour"]
+  n0["Console<br/>Sink<br/>expression: {% $ %}"]
+  n1["Double<br/>Pipeline<br/>rxjs.map<br/>worker: workers.double<br/>expression: {% $ * 2 %}"]
+  n2["GreaterThanFour<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.greaterThanFour<br/>expression: {% $ &gt; 4 %}"]
   n3["Numbers<br/>Source<br/>rxjs.from"]
   n1 -->|"value + value<br/>number"| n2
   n2 -->|"value + value<br/>number"| n0

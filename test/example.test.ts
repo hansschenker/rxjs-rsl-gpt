@@ -6,6 +6,8 @@ import test from "node:test";
 import {
   parseRslExpression,
   renderRslMermaid,
+  renderRslTimelineMermaid,
+  type RslTraceEvent,
   validateRslStructure,
 } from "../src/index.js";
 
@@ -34,9 +36,26 @@ void test("double-and-filter diagram is generated from its valid RSL graph", () 
     readFileSync(new URL("workflow.rsl.yaml", directory), "utf8"),
   );
   const diagram = readFileSync(new URL("workflow.mmd", directory), "utf8");
+  const trace = JSON.parse(
+    readFileSync(new URL("trace.json", directory), "utf8"),
+  ) as RslTraceEvent[];
+  const timeline = readFileSync(
+    new URL("execution-timeline.mmd", directory),
+    "utf8",
+  );
 
   assert.equal(validateRslStructure(expression).valid, true);
+  assert.equal(
+    expression.nodes.find((node) => node.id === "Double")?.extensions?.[
+      "x-jsonata"
+    ],
+    "{% $ * 2 %}",
+  );
   assert.equal(renderRslMermaid(expression), diagram);
+  assert.equal(
+    renderRslTimelineMermaid(expression, trace, "Console"),
+    timeline,
+  );
 });
 
 void test("temperature example compiles and matches the equivalent RxJS output", () => {

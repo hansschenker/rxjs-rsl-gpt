@@ -1,0 +1,79 @@
+[
+  {
+    "kind": "execution.started",
+    "sequence": 0,
+    "time": 0,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1"
+  },
+  {
+    "kind": "node.subscribed",
+    "sequence": 1,
+    "time": 1,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1"
+  },
+  {
+    "kind": "node.notification",
+    "sequence": 2,
+    "time": 2,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1",
+    "notification": "next",
+    "value": 6
+  },
+  {
+    "kind": "node.notification",
+    "sequence": 3,
+    "time": 3,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1",
+    "notification": "next",
+    "value": 8
+  },
+  {
+    "kind": "node.notification",
+    "sequence": 4,
+    "time": 3,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1",
+    "notification": "next",
+    "value": 10
+  },
+  {
+    "kind": "node.notification",
+    "sequence": 5,
+    "time": 3,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1",
+    "notification": "complete"
+  },
+  {
+    "kind": "node.finalized",
+    "sequence": 6,
+    "time": 3,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "nodeId": "Console",
+    "subscriptionId": "double-and-filter-1:Console:1",
+    "outcome": "complete"
+  },
+  {
+    "kind": "execution.finalized",
+    "sequence": 7,
+    "time": 3,
+    "expressionId": "rsl-workflow",
+    "executionId": "double-and-filter-1",
+    "outcome": "complete"
+  }
+]

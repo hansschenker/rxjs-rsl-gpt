@@ -53,6 +53,8 @@ function nodeLabel(
   if (node.kind !== "sink") lines.push(node.operation.ref);
   if (options.showWorkers && node.worker !== undefined)
     lines.push(`worker: ${node.worker.worker.ref}`);
+  const expression = node.extensions?.["x-jsonata"];
+  if (typeof expression === "string") lines.push(`expression: ${expression}`);
   if (options.showPolicies && node.kind === "pipeline") {
     if (node.concurrency !== undefined)
       lines.push(

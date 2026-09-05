@@ -517,7 +517,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
     if (next !== undefined) nextByNode.set(id, next);
 
     if (type === "Source") {
-      fields(
+      const extensions = fields(
         record,
         ["Type", "Operation", "Arguments", "Scheduler", "Output", "Next"],
         path,
@@ -538,13 +538,14 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         operation: { kind: "operation", ref: operation },
         ...(parameters === undefined ? {} : { parameters }),
         ...(scheduler === undefined ? {} : { scheduler }),
+        ...(extensions === undefined ? {} : { extensions }),
         inputs: [],
         outputs: [output],
       };
     }
 
     if (type === "Pipeline") {
-      fields(
+      const extensions = fields(
         record,
         [
           "Type",
@@ -721,11 +722,16 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         outputs: [output],
         ...(innerSource === undefined ? {} : { innerSource }),
         ...(concurrency === undefined ? {} : { concurrency }),
+        ...(extensions === undefined ? {} : { extensions }),
       };
     }
 
     if (type === "Sink") {
-      fields(record, ["Type", "Input", "Scheduler", "Handlers", "End"], path);
+      const extensions = fields(
+        record,
+        ["Type", "Input", "Scheduler", "Handlers", "End"],
+        path,
+      );
       if (record.End !== true) fail(`${path}.End must be true`);
       if (next !== undefined) fail(`${path}.Next is forbidden for a Sink`);
       const input = specPort(
@@ -776,6 +782,7 @@ function normalizeAslInspiredDocument(document: RslMapping): RslExpression {
         inputs: [input],
         outputs: [],
         ...(scheduler === undefined ? {} : { scheduler }),
+        ...(extensions === undefined ? {} : { extensions }),
         ...(handlers === undefined
           ? {}
           : {

@@ -256,21 +256,42 @@ The [double-and-filter example](examples/double-and-filter/README.md) visualizes
 
 ```mermaid
 flowchart LR
-  n0["Console<br/>Sink"]
-  n1["Double<br/>Pipeline<br/>rxjs.map<br/>worker: workers.double"]
-  n2["GreaterThanFour<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.greaterThanFour"]
-  n3["Numbers<br/>Source<br/>rxjs.from"]
-  n1 -->|"value + value<br/>number"| n2
-  n2 -->|"value + value<br/>number"| n0
-  n3 -->|"value + value<br/>number"| n1
-  class n0 sink
-  class n1 pipeline
-  class n2 pipeline
-  class n3 source
+  subgraph pipeline["RSL pipeline"]
+    direction TB
+    p0["Numbers<br/>rxjs.from"]
+    p1["Double<br/>rxjs.map<br/>workers.double<br/>expression: {% $ * 2 %}"]
+    p2["GreaterThanFour<br/>rxjs.filter<br/>workers.greaterThanFour<br/>expression: {% $ &gt; 4 %}"]
+    p3["Console<br/>subscribe<br/>expression: {% $ %}"]
+    p0 --> p1
+    p1 --> p2
+    p2 --> p3
+  end
+  subgraph execution["Console execution"]
+    direction TB
+    subgraph emitted["Emitted values"]
+      direction LR
+      v0(("6"))
+      v1(("8"))
+      v2(("10"))
+      v0 ~~~ v1 ~~~ v2
+    end
+    e0["2 ms + next + 6"]
+    e1["3 ms + next + 8"]
+    e2["3 ms + next + 10"]
+    e3["3 ms + complete + -"]
+    e0 --> e1 --> e2 --> e3
+  end
+  p3 -. notifications .-> e0
   classDef source fill:#e8f5e9,stroke:#2e7d32
-  classDef pipeline fill:#e3f2fd,stroke:#1565c0
+  classDef pipelineNode fill:#e3f2fd,stroke:#1565c0
   classDef sink fill:#fff3e0,stroke:#ef6c00
+  class p0 source
+  class p1 pipelineNode
+  class p2 pipelineNode
+  class p3 sink
 ```
+
+This execution view is generated from the RSL document plus its saved trace. It shows the declarative JSONata expression for each value step, the emitted values, and the ordered notification protocol.
 
 ## RSL v0.1 status
 
