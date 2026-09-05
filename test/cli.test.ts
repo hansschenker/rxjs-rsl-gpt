@@ -121,7 +121,8 @@ void test("visualize renders notification values from a saved trace", async () =
       executionId: "execution-1",
       nodeId: "Render",
       subscriptionId: "execution-1:Render:1",
-      notification: { kind: "next", value: 6 },
+      notification: "next",
+      value: 6,
     },
     {
       kind: "node.notification",
@@ -131,7 +132,7 @@ void test("visualize renders notification values from a saved trace", async () =
       executionId: "execution-1",
       nodeId: "Render",
       subscriptionId: "execution-1:Render:1",
-      notification: { kind: "complete" },
+      notification: "complete",
     },
     {
       kind: "execution.finalized",
