@@ -17,8 +17,10 @@ import {
   sourceFrom,
   type NodeOperationContract,
   type RslExpression,
+  type RslCompileOptions,
   type RslMultiInputOperationCapability,
   type RslSourceCapability,
+  type RslTraceEvent,
   type WorkerContract,
 } from "../src/index.js";
 
@@ -137,6 +139,7 @@ function run(
   expression: RslExpression,
   coordinate: RslMultiInputOperationCapability,
   source: RslSourceCapability,
+  options: RslCompileOptions = {},
 ) {
   const left: unknown[] = [];
   const right: unknown[] = [];
@@ -200,7 +203,7 @@ function run(
     resolveRslReferences(expression, registries),
     registries,
   );
-  return { workflow: compileRslGraph(valid), left, right };
+  return { workflow: compileRslGraph(valid, options), left, right };
 }
 
 void test("coordinates Sources in declared port order", () => {
@@ -246,6 +249,37 @@ void test("fan-out stays cold unless sharing is declared", async () => {
   );
   assert.deepEqual(Object.fromEntries(activations), { numbers: 1, letters: 1 });
   assert.deepEqual(shared.left, shared.right);
+});
+
+void test("trace participation reveals cold fan-out and explicit sharing", async () => {
+  const delayed: RslSourceCapability = (context) =>
+    new Observable((subscriber) => {
+      queueMicrotask(() => {
+        for (const value of context.parameters.values as readonly unknown[])
+          subscriber.next(value);
+        subscriber.complete();
+      });
+    });
+  const subscriptions = async (shared: boolean) => {
+    const events: RslTraceEvent[] = [];
+    const result = run(graph(shared), operationCombineLatest, delayed, {
+      trace: (event) => {
+        events.push(event);
+      },
+    });
+    await new Promise<void>((resolve, reject) =>
+      result.workflow.definition.subscribe({
+        complete: resolve,
+        error: reject,
+      }),
+    );
+    return events.filter(
+      (event) => event.kind === "node.subscribed" && event.nodeId === "numbers",
+    ).length;
+  };
+
+  assert.equal(await subscriptions(false), 2);
+  assert.equal(await subscriptions(true), 1);
 });
 
 void test("takeUntil treats the notifier as an explicit second input", () => {

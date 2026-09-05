@@ -16,7 +16,9 @@ import {
   sourceInterval,
   sourceOf,
   type NodeOperationContract,
+  type RslCompileOptions,
   type RslSourceCapability,
+  type RslTraceEvent,
 } from "../src/index.js";
 
 const noWorker = (inputs: number, outputs: number): NodeOperationContract => ({
@@ -70,6 +72,7 @@ function compile(
     readonly error: (error: unknown) => void;
     readonly complete: () => void;
   },
+  options: RslCompileOptions = {},
 ) {
   const expression = parseRslExpression(scheduledInterval);
   const registries = createRslRegistries({
@@ -115,6 +118,7 @@ function compile(
       resolveRslReferences(expression, registries),
       registries,
     ),
+    options,
   );
 }
 
@@ -227,4 +231,34 @@ void test("scheduler bindings round-trip through ASL-inspired YAML", () => {
   const pipelineScheduler = pipelineNode.scheduler;
   assert.equal(pipelineScheduler?.subscribeOn?.ref, "schedulers.virtual");
   assert.equal(pipelineScheduler.observeOn?.ref, "schedulers.virtual");
+});
+
+void test("scheduler roles are correlated with their execution and node", () => {
+  const scheduler = new TestScheduler(() => undefined);
+  const events: RslTraceEvent[] = [];
+  const workflow = compile(
+    sourceInterval,
+    scheduler,
+    {
+      next: () => undefined,
+      error: () => undefined,
+      complete: () => undefined,
+    },
+    { trace: (event) => events.push(event), now: () => scheduler.frame },
+  );
+
+  workflow.definition.subscribe();
+  scheduler.flush();
+
+  assert.deepEqual(
+    events
+      .filter((event) => event.kind === "scheduler.bound")
+      .map((event) => `${event.nodeId}:${event.role}`),
+    [
+      "Result:observeOn",
+      "FirstThree:subscribeOn",
+      "FirstThree:observeOn",
+      "Ticks:operation",
+    ],
+  );
 });

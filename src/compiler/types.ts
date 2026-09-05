@@ -7,6 +7,7 @@ import type {
 
 import type { OperationParameters, RslNode } from "../model/index.js";
 import type { ValidSemanticResult } from "../contracts/index.js";
+import type { RslTraceObserver } from "./tracing.js";
 
 export type RslRuntimeWorker = (...inputs: readonly unknown[]) => unknown;
 
@@ -50,4 +51,13 @@ export interface CompiledRslWorkflow {
   readonly expressionId: string;
   readonly definition: Observable<never>;
   readonly semanticEvidence: ValidSemanticResult;
+}
+
+export interface RslCompileOptions {
+  /** Optional observer for execution-local lifecycle events. */
+  readonly trace?: RslTraceObserver;
+  /** Supplies execution identities; called once for each subscription. */
+  readonly executionId?: () => string;
+  /** Supplies trace time. Inject a scheduler's now function for logical time. */
+  readonly now?: () => number;
 }

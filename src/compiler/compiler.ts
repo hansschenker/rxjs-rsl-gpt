@@ -7,6 +7,7 @@ import { RslCompilerError } from "./diagnostic.js";
 import type {
   CapabilityContext,
   CompiledRslWorkflow,
+  RslCompileOptions,
   RslRuntimeWorker,
   RslSinkCapability,
   RslSourceCapability,
@@ -17,6 +18,7 @@ import {
   assertRuntimeSchedulers,
   operationScheduler,
 } from "./scheduling.js";
+import { createTraceRuntime, traceExecution, traceNode } from "./tracing.js";
 
 function capability(
   value: unknown,
@@ -150,6 +152,7 @@ function orderedUnaryPath(
 
 export function compileRslUnary(
   semanticEvidence: ValidSemanticResult,
+  options: RslCompileOptions = {},
 ): CompiledRslWorkflow {
   const path = orderedUnaryPath(semanticEvidence);
   const sourceNode = path[0];
@@ -183,25 +186,45 @@ export function compileRslUnary(
   path.forEach(assertRuntimeSchedulers);
 
   // The whole factory is deferred. Factories and Workers run per subscription.
+  let executionOrdinal = 0;
+  const expressionId = semanticEvidence.expression.expression.id;
   const definition: Observable<never> = defer(() => {
-    let stream: Observable<unknown> = applyNodeScheduling(
-      from(sourceFactory(context(sourceNode))),
+    const executionId =
+      options.executionId?.() ??
+      `${expressionId}:execution:${String(++executionOrdinal)}`;
+    const trace = createTraceRuntime(expressionId, executionId, options);
+    let stream: Observable<unknown> = traceNode(
+      applyNodeScheduling(
+        defer(() => from(sourceFactory(context(sourceNode)))),
+        sourceNode,
+      ),
       sourceNode,
+      trace,
     );
 
     for (const operation of operations) {
-      stream = applyNodeScheduling(
-        stream.pipe(operation.capability(context(operation.pipeline))),
+      stream = traceNode(
+        applyNodeScheduling(
+          stream.pipe(operation.capability(context(operation.pipeline))),
+          operation.pipeline,
+        ),
         operation.pipeline,
+        trace,
       );
     }
 
-    return sink(applyNodeScheduling(stream, sinkNode), context(sinkNode));
+    return traceExecution(
+      sink(
+        traceNode(applyNodeScheduling(stream, sinkNode), sinkNode, trace),
+        context(sinkNode),
+      ),
+      trace,
+    );
   });
 
   return Object.freeze({
     kind: "compiled-rsl-workflow",
-    expressionId: semanticEvidence.expression.expression.id,
+    expressionId,
     definition,
     semanticEvidence,
   });

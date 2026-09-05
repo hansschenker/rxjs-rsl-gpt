@@ -15,6 +15,17 @@ export {
   operationScheduler,
 } from "./scheduling.js";
 export {
+  createTraceRuntime,
+  traceExecution,
+  traceNode,
+  type RslExecutionOutcome,
+  type RslNotificationKind,
+  type RslSchedulerRole,
+  type RslTraceEvent,
+  type RslTraceObserver,
+  type RslTraceRuntime,
+} from "./tracing.js";
+export {
   effectSink,
   handlersSink,
   observerSink,
@@ -46,6 +57,7 @@ export {
 export type {
   CapabilityContext,
   CompiledRslWorkflow,
+  RslCompileOptions,
   RslRuntimeWorker,
   RslSinkCapability,
   RslSourceCapability,

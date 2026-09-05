@@ -20,8 +20,8 @@ Status values:
 | Laziness                   | Compile invokes no Source or Worker                                               | RSL 11                 | conformant |
 | Subscription boundary      | Each subscription creates an independent execution by default                     | RSL 11                 | conformant |
 | Notification protocol      | Zero or more next values followed by at most one terminal notification            | RSL 11                 | conformant |
-| Cancellation               | Teardown stops participation and does not emit complete                           | RSL 11, RSL 15         | partial    |
-| Execution-local state      | Reducer, coordination, and inner state are not shared implicitly                  | RSL 11–RSL 13          | partial    |
+| Cancellation               | Teardown stops participation and does not emit complete                           | RSL 11, RSL 15         | conformant |
+| Execution-local state      | Reducer, coordination, inner state, and trace identity are not shared implicitly  | RSL 11–RSL 15          | conformant |
 | Multiple Sources           | A multi-input Pipeline can coordinate independently declared Sources              | RSL 12                 | conformant |
 | Multiple Sinks             | Terminal consumers follow declared topology and sharing                           | RSL 12                 | conformant |
 | Sharing                    | Fan-out does not imply sharing; sharing and reset policies are explicit           | RSL 12                 | conformant |
@@ -36,7 +36,7 @@ Status values:
 | No YAML execution          | Parsing invokes no runtime reference                                              | RSL 07                 | conformant |
 | Reference resolution       | Missing, duplicate, and wrong-category references fail                            | RSL 09                 | conformant |
 | Error recovery             | Retry and recovery scopes preserve cancellation and typing                        | RSL 16                 | scaffold   |
-| Trace protocol             | Lifecycle, notifications, scheduling, sharing, and teardown correlate by identity | RSL 15                 | scaffold   |
+| Trace protocol             | Lifecycle, notifications, scheduling, sharing, and teardown correlate by identity | RSL 15                 | conformant |
 | Visualization              | Mermaid is deterministic and introduces no topology                               | RSL 17                 | scaffold   |
 
 ## Evidence requirements

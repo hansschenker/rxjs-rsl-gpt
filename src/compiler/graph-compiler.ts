@@ -7,6 +7,7 @@ import { RslCompilerError } from "./diagnostic.js";
 import type {
   CapabilityContext,
   CompiledRslWorkflow,
+  RslCompileOptions,
   RslMultiInputOperationCapability,
   RslRuntimeWorker,
   RslSinkCapability,
@@ -18,6 +19,7 @@ import {
   assertRuntimeSchedulers,
   operationScheduler,
 } from "./scheduling.js";
+import { createTraceRuntime, traceExecution, traceNode } from "./tracing.js";
 
 function runtimeFunction(
   value: unknown,
@@ -85,6 +87,7 @@ function assertSupportedPorts(node: RslNode): void {
 /** Compile a validated DAG. Every cache and sharing subject is execution-local. */
 export function compileRslGraph(
   semanticEvidence: ValidSemanticResult,
+  options: RslCompileOptions = {},
 ): CompiledRslWorkflow {
   const resolvedNodes = semanticEvidence.expression.nodes;
   const expression = semanticEvidence.expression.expression;
@@ -116,7 +119,12 @@ export function compileRslGraph(
   for (const edge of expression.edges)
     incoming.set(`${edge.to.node}\u0000${edge.to.port}`, edge.from);
 
+  let executionOrdinal = 0;
   const definition: Observable<never> = defer(() => {
+    const executionId =
+      options.executionId?.() ??
+      `${expression.id}:execution:${String(++executionOrdinal)}`;
+    const trace = createTraceRuntime(expression.id, executionId, options);
     const streams = new Map<string, Observable<unknown>>();
     const building = new Set<string>();
 
@@ -145,9 +153,13 @@ export function compileRslGraph(
           resolved.node,
           "Source",
         ) as RslSourceCapability;
-        result = applyNodeScheduling(
-          defer(() => from(source(runtimeContext(resolved)))),
+        result = traceNode(
+          applyNodeScheduling(
+            defer(() => from(source(runtimeContext(resolved)))),
+            resolved,
+          ),
           resolved,
+          trace,
         );
       } else if (resolved.node.kind === "pipeline") {
         const inputs = resolved.node.inputs.map((port) => {
@@ -166,11 +178,15 @@ export function compileRslGraph(
             resolved.node,
             "operation",
           ) as RslUnaryOperationCapability;
-          result = applyNodeScheduling(
-            inputs[0]?.pipe(
-              operation(runtimeContext(resolved)),
-            ) as Observable<unknown>,
+          result = traceNode(
+            applyNodeScheduling(
+              inputs[0]?.pipe(
+                operation(runtimeContext(resolved)),
+              ) as Observable<unknown>,
+              resolved,
+            ),
             resolved,
+            trace,
           );
         } else {
           const operation = runtimeFunction(
@@ -178,9 +194,13 @@ export function compileRslGraph(
             resolved.node,
             "multi-input operation",
           ) as RslMultiInputOperationCapability;
-          result = applyNodeScheduling(
-            operation(inputs, runtimeContext(resolved)),
+          result = traceNode(
+            applyNodeScheduling(
+              operation(inputs, runtimeContext(resolved)),
+              resolved,
+            ),
             resolved,
+            trace,
           );
         }
       } else {
@@ -215,11 +235,15 @@ export function compileRslGraph(
           "Sink",
         ) as RslSinkCapability;
         return sink(
-          applyNodeScheduling(build(edge.node), resolved),
+          traceNode(
+            applyNodeScheduling(build(edge.node), resolved),
+            resolved,
+            trace,
+          ),
           runtimeContext(resolved),
         );
       });
-    return merge(...terminals);
+    return traceExecution(merge(...terminals), trace);
   });
 
   return Object.freeze({

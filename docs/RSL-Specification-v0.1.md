@@ -8,7 +8,8 @@ This document consolidates the following RSL v0.1 definitions into one coherent 
 2. the RxJS notification protocol;
 3. multi-source combination;
 4. dynamic inner sources and concurrency policies;
-5. scheduler and time semantics.
+5. scheduler and time semantics;
+6. execution lifecycle and trace semantics.
 
 The terms **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are normative requirements.
 
@@ -902,7 +903,33 @@ For each subscription:
 7. a new subscription creates an independent execution unless sharing is explicitly declared elsewhere;
 8. cancellation affects only the execution owned by the cancelled Subscription unless sharing semantics explicitly say otherwise.
 
-## 19. Complete example with combination and flattening
+## 19. Execution lifecycle and trace protocol
+
+Tracing is optional instrumentation over a running workflow execution. It MUST NOT alter topology, values, notification timing, terminal outcome, sharing, or teardown.
+
+Each execution trace MUST provide:
+
+1. an `expressionId` identifying the static workflow;
+2. a distinct `executionId` for each subscription;
+3. a monotonically increasing execution-local `sequence` beginning at zero;
+4. a `time` supplied by the configured physical or logical clock;
+5. a `nodeId` for node events;
+6. a distinct `subscriptionId` for each actual subscription to a node stream.
+
+The core event kinds are:
+
+- `execution.started`;
+- `node.subscribed`;
+- `scheduler.bound` with its operation, subscription, or notification role;
+- `node.notification` with `next`, `error`, or `complete`;
+- `node.finalized` with `complete`, `error`, or `cancelled`;
+- `execution.finalized` with `complete`, `error`, or `cancelled`.
+
+Compilation MUST emit no event. `execution.started` MUST be the first event for a subscription, and `execution.finalized` MUST be its final event. Cancellation MUST produce the `cancelled` outcome and MUST NOT synthesize `complete`. A trace observer failure MUST be isolated from workflow execution.
+
+Trace participation reflects runtime topology: cold fan-out can create multiple node subscription identities, while explicit sharing can retain a single upstream participation.
+
+## 20. Complete example with combination and flattening
 
 ```yaml
 Version: "0.1"
@@ -989,7 +1016,7 @@ flowchart LR
   S --> R["Render<br/>Sink"]
 ```
 
-## 20. Compact grammar
+## 21. Compact grammar
 
 ```text
 Workflow          ::= Version Comment? StartAt Nodes
@@ -1011,7 +1038,7 @@ Scheduler         ::= SchedulerRef | SchedulerRoles
 SchedulerRoles    ::= Operation? SubscribeOn? ObserveOn?
 ```
 
-## 21. Summary model
+## 22. Summary model
 
 ```text
 Static workflow:
