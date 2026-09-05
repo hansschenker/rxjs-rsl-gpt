@@ -2,8 +2,9 @@
 export const RSL_VERSION = "0.1" as const;
 
 /** Package status remains pre-release until the v0.1 conformance matrix passes. */
-export const IMPLEMENTATION_STATUS = "visualization-debugging" as const;
+export const IMPLEMENTATION_STATUS = "cli-developer-workflow" as const;
 
+export * from "./cli/index.js";
 export * from "./compiler/index.js";
 export * from "./contracts/index.js";
 export type * from "./model/index.js";

@@ -1079,7 +1079,23 @@ A debugger snapshot:
 
 Presentation options MAY hide details or select layout direction, but MUST NOT change topology.
 
-## 23. Summary model
+## 23. CLI and developer workflow
+
+An RSL CLI SHOULD compose the public language boundaries without introducing execution behavior.
+
+1. `validate` MUST parse deterministic YAML and report structural diagnostics without invoking a runtime registry.
+2. `format` MUST produce canonical deterministic RSL YAML; checking MUST be non-mutating, and replacing a file MUST require an explicit write option.
+3. `visualize` MUST structurally validate before generating deterministic Mermaid and MUST require an explicit output option before writing a file.
+4. `inspect` MUST produce a deterministic graph summary without executing the workflow.
+5. `debug` MUST fold a saved trace without controlling the recorded or any live execution.
+6. Successful generated output MUST use standard output and diagnostics MUST use standard error unless an explicit output path is selected.
+7. Invalid language input or a failed check MUST return a nonzero status; invalid command usage SHOULD use a distinct status.
+
+Build output SHOULD expose an executable `rsl` package command. Process-level tests SHOULD verify the built entry point rather than only calling command functions in memory.
+
+Input and output port identities form separate local namespaces because every port address includes its direction. A Pipeline MAY therefore use the same local identity for its input and output; duplicate identities within one direction remain invalid.
+
+## 24. Summary model
 
 ```text
 Static workflow:

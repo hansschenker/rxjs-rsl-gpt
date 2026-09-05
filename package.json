@@ -4,15 +4,21 @@
   "private": true,
   "description": "Reference implementation of RxJS RSL v0.1",
   "type": "module",
+  "bin": {
+    "rsl": "./dist/cli/entry.js"
+  },
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run build",
     "test": "node --import tsx --test test/*.test.ts",
+    "rsl": "node --import tsx src/cli/entry.ts",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {

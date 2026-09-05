@@ -92,7 +92,10 @@ export function validateRslStructure(
       nodeIndexById.set(node.id, nodeIndex);
     }
 
-    const portIds = new Set<string>();
+    const portIds = {
+      input: new Set<string>(),
+      output: new Set<string>(),
+    };
     [...node.inputs, ...node.outputs].forEach((port) => {
       const collection = port.direction === "input" ? "inputs" : "outputs";
       const portIndex =
@@ -110,7 +113,7 @@ export function validateRslStructure(
           ),
         );
       }
-      if (portIds.has(port.id)) {
+      if (portIds[port.direction].has(port.id)) {
         diagnostics.push(
           diagnostic(
             "STR-003_DUPLICATE_PORT_ID",
@@ -119,7 +122,7 @@ export function validateRslStructure(
             { nodeId: node.id, portId: port.id },
           ),
         );
-      } else portIds.add(port.id);
+      } else portIds[port.direction].add(port.id);
     });
   });
 
