@@ -54,9 +54,9 @@ flowchart LR
   n1["CelsiusReadings<br/>Source<br/>rxjs.from"]
   n2["HotOnly<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.isHot"]
   n3["ToFahrenheit<br/>Pipeline<br/>rxjs.map<br/>worker: workers.toFahrenheit"]
-  n1 -->|"value → value<br/>number"| n3
-  n2 -->|"value → value<br/>number"| n0
-  n3 -->|"value → value<br/>number"| n2
+  n1 -->|"value + value<br/>number"| n3
+  n2 -->|"value + value<br/>number"| n0
+  n3 -->|"value + value<br/>number"| n2
   class n0 sink
   class n1 source
   class n2 pipeline

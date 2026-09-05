@@ -73,7 +73,8 @@ function edgeLabel(
   const source = expression.nodes
     .find((node) => node.id === edge.from.node)
     ?.outputs.find((port) => port.id === edge.from.port);
-  const ports = `${edge.from.port} → ${edge.to.port}`;
+  // ASCII-only separator keeps generated labels compatible with Mermaid editors.
+  const ports = `${edge.from.port} + ${edge.to.port}`;
   return escaped(
     showTypes && source !== undefined
       ? `${ports}<br/>${typeName(source.type)}`

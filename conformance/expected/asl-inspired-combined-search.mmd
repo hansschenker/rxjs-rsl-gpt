@@ -4,10 +4,10 @@ flowchart LR
   n2["Render<br/>Sink"]
   n3["Search<br/>Pipeline<br/>rxjs.switchMap<br/>worker: workers.search<br/>policy: latest / 1"]
   n4["SearchContext<br/>Pipeline<br/>rxjs.combineLatest"]
-  n0 -->|"value → input-1<br/>string"| n4
-  n1 -->|"value → input-0<br/>string"| n4
-  n4 -->|"value → value<br/>readonly [string, string]"| n3
-  n3 -->|"value → value<br/>string"| n2
+  n0 -->|"value + input-1<br/>string"| n4
+  n1 -->|"value + input-0<br/>string"| n4
+  n4 -->|"value + value<br/>readonly [string, string]"| n3
+  n3 -->|"value + value<br/>string"| n2
   class n0 source
   class n1 source
   class n2 sink
