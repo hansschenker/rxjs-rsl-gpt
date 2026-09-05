@@ -39,6 +39,7 @@ Status values:
 | Trace protocol             | Lifecycle, notifications, scheduling, sharing, and teardown correlate by identity  | RSL 15                 | conformant |
 | Visualization              | Mermaid is deterministic and introduces no topology                                | RSL 17                 | conformant |
 | CLI developer workflow     | Static commands compose public APIs, use stable output, and never execute workflow | RSL 18                 | conformant |
+| End-to-end release gate    | Parse through compile composes lazily; built package exports the v0.1 public API   | RSL 19                 | conformant |
 
 ## Evidence requirements
 
@@ -48,3 +49,5 @@ Each row reaching **conformant** must link to:
 2. at least one valid fixture or positive test;
 3. at least one invalid fixture or negative test where rejection is meaningful;
 4. runtime notification or teardown traces where static output alone is insufficient.
+
+The individual evidence suites are joined by [`test/release-conformance.test.ts`](../test/release-conformance.test.ts), which exercises the canonical fixture through parsing, structural validation, reference resolution, semantic validation, graph compilation, subscription, terminal tracing, deterministic serialization, Mermaid comparison, and built-package import. The exact normative clauses are consolidated in the [RSL Specification v0.1](RSL-Specification-v0.1.md); milestone-specific positive and negative evidence remains linked from the corresponding implementation document.

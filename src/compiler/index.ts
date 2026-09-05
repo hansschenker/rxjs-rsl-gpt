@@ -1,6 +1,10 @@
 export { compileRslUnary } from "./compiler.js";
 export { compileRslGraph } from "./graph-compiler.js";
 export {
+  compileRsl,
+  type RslDocumentCompileOptions,
+} from "./document-compiler.js";
+export {
   createHigherOrderOperation,
   operationConcatMap,
   operationExhaustMap,

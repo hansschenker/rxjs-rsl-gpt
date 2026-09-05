@@ -1095,7 +1095,20 @@ Build output SHOULD expose an executable `rsl` package command. Process-level te
 
 Input and output port identities form separate local namespaces because every port address includes its direction. A Pipeline MAY therefore use the same local identity for its input and output; duplicate identities within one direction remain invalid.
 
-## 24. Summary model
+## 24. End-to-end conformance
+
+A conforming v0.1 implementation MUST preserve the boundaries defined by this specification when composing a complete document-to-workflow path.
+
+1. Document compilation MUST perform deterministic parsing, structural validation, reference resolution, semantic validation, and graph compilation in that order.
+2. Document compilation MUST remain lazy: no Source, Worker, scheduler, or Sink capability may run before subscription.
+3. A failure MUST retain the diagnostic family of the stage that rejects the document.
+4. An end-to-end positive test MUST cross the static stages and at least one subscription, including next values and a terminal notification or cancellation.
+5. A release claim MUST be backed by passing evidence for every non-excluded row in the conformance matrix.
+6. The distributable package MUST expose the same public API used by the conformance suite.
+
+`compileRsl` is the reference implementation's composed document compiler. It accepts deterministic RSL YAML, application registries, and optional semantic and execution settings, and returns a compiled workflow whose definition remains cold until subscription.
+
+## 25. Summary model
 
 ```text
 Static workflow:

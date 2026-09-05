@@ -9,4 +9,4 @@ fixtures/
 expected/    deterministic generated artifacts such as Mermaid snapshots
 ```
 
-Fixtures and expected projections are introduced with the milestone that defines their semantics.
+Fixtures and expected projections are introduced with the milestone that defines their semantics. `test/release-conformance.test.ts` composes the canonical ASL-inspired fixture, runtime registries, deterministic Mermaid projection, trace protocol, and built package surface as the RSL v0.1 release gate.
