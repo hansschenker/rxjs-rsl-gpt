@@ -250,6 +250,28 @@ The diagram is generated from [`workflow.rsl.yaml`](examples/temperature-alerts/
 npm run example:temperature
 ```
 
+### Double and filter
+
+The [double-and-filter example](examples/double-and-filter/README.md) visualizes `from([1, 2, 3, 4, 5]).pipe(map(n => n * 2), filter(n => n > 4))`:
+
+```mermaid
+flowchart LR
+  n0["Console<br/>Sink"]
+  n1["Double<br/>Pipeline<br/>rxjs.map<br/>worker: workers.double"]
+  n2["GreaterThanFour<br/>Pipeline<br/>rxjs.filter<br/>worker: workers.greaterThanFour"]
+  n3["Numbers<br/>Source<br/>rxjs.from"]
+  n1 -->|"value + value<br/>number"| n2
+  n2 -->|"value + value<br/>number"| n0
+  n3 -->|"value + value<br/>number"| n1
+  class n0 sink
+  class n1 pipeline
+  class n2 pipeline
+  class n3 source
+  classDef source fill:#e8f5e9,stroke:#2e7d32
+  classDef pipeline fill:#e3f2fd,stroke:#1565c0
+  classDef sink fill:#fff3e0,stroke:#ef6c00
+```
+
 ## RSL v0.1 status
 
 **RSL 19 — v0.1 conformant**

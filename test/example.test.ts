@@ -28,6 +28,17 @@ void test("temperature example diagram is generated from its valid RSL graph", (
   assert.equal(renderRslMermaid(expression), expectedDiagram);
 });
 
+void test("double-and-filter diagram is generated from its valid RSL graph", () => {
+  const directory = new URL("../examples/double-and-filter/", import.meta.url);
+  const expression = parseRslExpression(
+    readFileSync(new URL("workflow.rsl.yaml", directory), "utf8"),
+  );
+  const diagram = readFileSync(new URL("workflow.mmd", directory), "utf8");
+
+  assert.equal(validateRslStructure(expression).valid, true);
+  assert.equal(renderRslMermaid(expression), diagram);
+});
+
 void test("temperature example compiles and matches the equivalent RxJS output", () => {
   const run = (file: string) =>
     spawnSync(process.execPath, ["--import", "tsx", file], {

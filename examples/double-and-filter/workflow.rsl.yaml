@@ -1,0 +1,41 @@
+Version: "0.1"
+StartAt: Numbers
+Nodes:
+  Numbers:
+    Type: Source
+    Operation: rxjs.from
+    Arguments:
+      - [1, 2, 3, 4, 5]
+    Output:
+      Type: number
+    Next: Double
+  Double:
+    Type: Pipeline
+    Operation: rxjs.map
+    Worker: workers.double
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: GreaterThanFour
+  GreaterThanFour:
+    Type: Pipeline
+    Operation: rxjs.filter
+    Worker:
+      ref: workers.greaterThanFour
+      input: number
+      output: boolean
+      category: predicate
+      purity: pure
+    Input:
+      Type: number
+    Output:
+      Type: number
+    Next: Console
+  Console:
+    Type: Sink
+    Input:
+      Type: number
+    Handlers:
+      Next: workers.log
+    End: true
